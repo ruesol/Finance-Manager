@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1766854493587,
+      "tag": "20251227165453_aromatic_the_watchers",
+      "breakpoints": true
+    }
+  ]
+}

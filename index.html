@@ -2,8 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PFM Dashboard</title>
+    <title>Finance Manager</title>
+    <script>
+      // Applica il tema PRIMA che React venga caricato per evitare flash
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        const root = document.documentElement;
+        
+        if (savedTheme === 'system') {
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (prefersDark) {
+            root.classList.add('dark');
+          }
+        } else if (savedTheme === 'dark') {
+          root.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

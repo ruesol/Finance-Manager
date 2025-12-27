@@ -11,11 +11,9 @@
   --color-primary-700: #1d4ed8;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@variant dark (.dark &);
+
+/* Tailwind base already includes a reset, no need for custom one */
 
 body {
   min-height: 100vh;
@@ -35,7 +33,7 @@ html {
   scroll-behavior: smooth;
 }
 
-@keyframes fadeIn {
+@keyframe fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
@@ -60,6 +58,40 @@ html {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 @media print {
