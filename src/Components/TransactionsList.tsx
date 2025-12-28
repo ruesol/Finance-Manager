@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-
-const API_URL = 'http://localhost:3001/api';
+import { TransactionForm } from './TransactionForm';
+import { API_URL } from '../config';
 
 interface Transaction {
   id: string;
@@ -42,16 +42,6 @@ export function TransactionsList() {
   
   // Add transaction form
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({
-    accountId: '',
-    amount: '',
-    type: 'EXPENSE' as 'INCOME' | 'EXPENSE' | 'TRANSFER',
-    status: 'CLEARED' as 'PENDING' | 'CLEARED' | 'RECONCILED' | 'CANCELLED',
-    categoryId: '',
-    description: '',
-    merchantName: '',
-    date: new Date().toISOString().split('T')[0]
-  });
 
   useEffect(() => {
     loadData();
@@ -104,48 +94,7 @@ export function TransactionsList() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    
-    try {
-      const amountInCents = Math.round(parseFloat(formData.amount || '0') * 100);
-      
-      const response = await fetch(`${API_URL}/transactions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accountId: formData.accountId,
-          amount: amountInCents,
-          currency: 'EUR',
-          type: formData.type,
-          status: formData.status,
-          categoryId: formData.categoryId || null,
-          description: formData.description,
-          merchantName: formData.merchantName || null,
-          date: formData.date // Keep as string, server will convert
-        })
-      });
-      
-      if (!response.ok) throw new Error('Failed to create transaction');
-      
-      // Reset form
-      setFormData({
-        accountId: '',
-        amount: '',
-        type: 'EXPENSE',
-        status: 'CLEARED',
-        categoryId: '',
-        description: '',
-        merchantName: '',
-        date: new Date().toISOString().split('T')[0]
-      });
-      setShowAddForm(false);
-      loadData();
-    } catch (error) {
-      console.error('Error creating transaction:', error);
-      alert('Errore nella creazione della transazione');
-    }
-  }
+
 
   function formatCurrency(cents: number, currency: string = 'EUR'): string {
     const amount = cents / 100;
@@ -245,148 +194,23 @@ export function TransactionsList() {
 
       {/* Add Transaction Form */}
       {showAddForm && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl shadow-xl border-2 border-blue-200 dark:border-gray-600 p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
-            <span className="text-3xl">✨</span>
-            <span>Nuova Transazione</span>
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Account */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Conto *</label>
-                <select
-                  required
-                  title="Seleziona conto"
-                  value={formData.accountId}
-                  onChange={(e) => setFormData({...formData, accountId: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
-                >
-                  <option value="">Seleziona conto</option>
-                  {accountsList.map(acc => (
-                    <option key={acc.id} value={acc.id}>{acc.icon} {acc.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Amount */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Importo (€) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.amount}
-                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  placeholder="0.00"
-                />
-              </div>
-
-              {/* Type */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tipo *</label>
-                <select
-                  required
-                  title="Seleziona tipo"
-                  value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value as any})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
-                >
-                  <option value="EXPENSE">📉 Spesa</option>
-                  <option value="INCOME">📈 Entrata</option>
-                  <option value="TRANSFER">🔄 Trasferimento</option>
-                </select>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Stato *</label>
-                <select
-                  required
-                  title="Seleziona stato"
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
-                >
-                  <option value="PENDING">⏳ In attesa</option>
-                  <option value="CLEARED">✅ Confermato</option>
-                  <option value="RECONCILED">🔒 Riconciliato</option>
-                </select>
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Categoria</label>
-                <select
-                  title="Seleziona categoria"
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
-                >
-                  <option value="">Nessuna categoria</option>
-                  {categoriesList.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Date */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Data *</label>
-                <input
-                  type="date"
-                  required
-                  title="Seleziona data"
-                  value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Descrizione *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  placeholder="Es: Spesa al supermercato"
-                />
-              </div>
-
-              {/* Merchant Name */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nome Negozio/Beneficiario</label>
-                <input
-                  type="text"
-                  value={formData.merchantName}
-                  onChange={(e) => setFormData({...formData, merchantName: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  placeholder="Es: Conad, Amazon, etc."
-                />
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setShowAddForm(false)}
-                className="px-6 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
-              >
-                Annulla
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 shadow-lg"
-              >
-                💾 Salva Transazione
-              </button>
-            </div>
-          </form>
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <span className="text-3xl">✨</span>
+              <span>Nuova Transazione</span>
+            </h2>
+            <button
+              onClick={() => setShowAddForm(false)}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
+            >
+              Annulla
+            </button>
+          </div>
+          <TransactionForm onSuccess={() => {
+            setShowAddForm(false);
+            loadData();
+          }} />
         </div>
       )}
 

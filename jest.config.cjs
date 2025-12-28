@@ -22,7 +22,11 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
-        jsx: 'react-jsx'
+        jsx: 'react-jsx',
+        module: 'ESNext'
+      },
+      diagnostics: {
+        ignoreCodes: [1343]
       }
     }]
   },
