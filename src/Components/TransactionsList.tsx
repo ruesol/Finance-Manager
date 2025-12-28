@@ -194,7 +194,7 @@ export function TransactionsList() {
     PENDING: { label: 'In attesa', color: 'text-orange-600 bg-orange-50' },
     CLEARED: { label: 'Confermato', color: 'text-green-600 bg-green-50' },
     RECONCILED: { label: 'Riconciliato', color: 'text-blue-600 bg-blue-50' },
-    CANCELLED: { label: 'Annullato', color: 'text-gray-600 bg-gray-50' }
+    CANCELLED: { label: 'Annullato', color: 'text-gray-600 dark:text-gray-300 bg-gray-50' }
   };
 
   if (loading) {
@@ -209,8 +209,8 @@ export function TransactionsList() {
     return (
       <div className="flex flex-col items-center justify-center min-h-96">
         <div className="text-6xl mb-4">⚠️</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Errore di connessione</h3>
-        <p className="text-gray-600 mb-4">{error}</p>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Errore di connessione</h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button
           onClick={loadData}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -226,11 +226,11 @@ export function TransactionsList() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
             <span className="text-5xl">💸</span>
             <span>Transazioni</span>
           </h1>
-          <p className="text-gray-600 mt-2 text-lg">
+          <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
             Visualizza e filtra le tue transazioni ({filteredTransactions.length} trovate)
           </p>
         </div>
@@ -245,8 +245,8 @@ export function TransactionsList() {
 
       {/* Add Transaction Form */}
       {showAddForm && (
-        <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-xl border-2 border-blue-200 p-3 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl shadow-xl border-2 border-blue-200 dark:border-gray-600 p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
             <span className="text-3xl">✨</span>
             <span>Nuova Transazione</span>
           </h2>
@@ -254,13 +254,13 @@ export function TransactionsList() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Account */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Conto *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Conto *</label>
                 <select
                   required
                   title="Seleziona conto"
                   value={formData.accountId}
                   onChange={(e) => setFormData({...formData, accountId: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
                 >
                   <option value="">Seleziona conto</option>
                   {accountsList.map(acc => (
@@ -271,27 +271,27 @@ export function TransactionsList() {
 
               {/* Amount */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Importo (€) *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Importo (€) *</label>
                 <input
                   type="number"
                   step="0.01"
                   required
                   value={formData.amount}
                   onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="0.00"
                 />
               </div>
 
               {/* Type */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tipo *</label>
                 <select
                   required
                   title="Seleziona tipo"
                   value={formData.type}
                   onChange={(e) => setFormData({...formData, type: e.target.value as any})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
                 >
                   <option value="EXPENSE">📉 Spesa</option>
                   <option value="INCOME">📈 Entrata</option>
@@ -301,13 +301,13 @@ export function TransactionsList() {
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Stato *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Stato *</label>
                 <select
                   required
                   title="Seleziona stato"
                   value={formData.status}
                   onChange={(e) => setFormData({...formData, status: e.target.value as any})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
                 >
                   <option value="PENDING">⏳ In attesa</option>
                   <option value="CLEARED">✅ Confermato</option>
@@ -317,12 +317,12 @@ export function TransactionsList() {
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Categoria</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Categoria</label>
                 <select
                   title="Seleziona categoria"
                   value={formData.categoryId}
                   onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
                 >
                   <option value="">Nessuna categoria</option>
                   {categoriesList.map(cat => (
@@ -333,38 +333,38 @@ export function TransactionsList() {
 
               {/* Date */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Data *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Data *</label>
                 <input
                   type="date"
                   required
                   title="Seleziona data"
                   value={formData.date}
                   onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
 
               {/* Description */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Descrizione *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Descrizione *</label>
                 <input
                   type="text"
                   required
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="Es: Spesa al supermercato"
                 />
               </div>
 
               {/* Merchant Name */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Nome Negozio/Beneficiario</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nome Negozio/Beneficiario</label>
                 <input
                   type="text"
                   value={formData.merchantName}
                   onChange={(e) => setFormData({...formData, merchantName: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="Es: Conad, Amazon, etc."
                 />
               </div>
@@ -375,13 +375,13 @@ export function TransactionsList() {
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all"
+                className="px-6 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all"
               >
                 Annulla
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 shadow-lg"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 shadow-lg"
               >
                 💾 Salva Transazione
               </button>
@@ -391,7 +391,7 @@ export function TransactionsList() {
       )}
 
       {/* Filters */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-gray-100 p-3 mb-8">
+      <div className="bg-white dark:bg-gray-700/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-gray-100 p-3 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div className="lg:col-span-2">
@@ -400,7 +400,7 @@ export function TransactionsList() {
               placeholder="🔍 Cerca per descrizione o negozio..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              className="w-full dark:text-gray-400 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             />
           </div>
 
@@ -410,7 +410,7 @@ export function TransactionsList() {
               title="Filtra per tipo"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+              className="w-full dark:text-gray-100 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
             >
               <option value="ALL">Tutti i tipi</option>
               <option value="INCOME">Entrate</option>
@@ -425,7 +425,7 @@ export function TransactionsList() {
               title="Filtra per conto"
               value={filterAccount}
               onChange={(e) => setFilterAccount(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+              className="w-full dark:text-gray-100 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
             >
               <option value="ALL">Tutti i conti</option>
               {accountsList.map(acc => (
@@ -442,7 +442,7 @@ export function TransactionsList() {
               title="Filtra per categoria"
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+              className="w-full dark:text-gray-100 px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
             >
               <option value="ALL">Tutte le categorie</option>
               {categoriesList.map(cat => (
@@ -474,7 +474,7 @@ export function TransactionsList() {
       </div>
 
       {/* Transactions List */}
-      <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-100 overflow-hidden p-2">
+      <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-xl border-2 border-gray-100 overflow-hidden p-2">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-linear-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
@@ -492,7 +492,7 @@ export function TransactionsList() {
             <tbody className="divide-y divide-gray-100">
               {paginatedTransactions.map(tx => (
                 <tr key={tx.id} className="hover:bg-blue-50/50 transition-colors duration-150">
-                  <td className="px-6 py-4 text-sm text-gray-900 font-medium whitespace-nowrap">
+                  <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">
                     {formatDate(tx.date)}
                   </td>
                   <td className="px-6 py-4">
@@ -502,7 +502,7 @@ export function TransactionsList() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 font-semibold">{tx.description}</div>
+                    <div className="text-sm text-gray-900 dark:text-gray-100 font-semibold">{tx.description}</div>
                     {tx.merchantName && (
                       <div className="text-xs text-gray-500 mt-1">{tx.merchantName}</div>
                     )}
@@ -513,14 +513,14 @@ export function TransactionsList() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">{tx.accountIcon}</span>
-                      <span className="text-sm text-gray-900 font-medium">{tx.accountName}</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">{tx.accountName}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     {tx.categoryName ? (
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{tx.categoryIcon}</span>
-                        <span className="text-sm text-gray-900 font-medium">{tx.categoryName}</span>
+                        <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">{tx.categoryName}</span>
                       </div>
                     ) : (
                       <span className="text-sm text-gray-400">-</span>
@@ -559,8 +559,8 @@ export function TransactionsList() {
         {paginatedTransactions.length === 0 && (
           <div className="text-center py-16">
             <div className="text-7xl mb-4">💸</div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Nessuna transazione trovata</h3>
-            <p className="text-gray-600">Prova a modificare i filtri di ricerca</p>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Nessuna transazione trovata</h3>
+            <p className="text-gray-600 dark:text-gray-300">Prova a modificare i filtri di ricerca</p>
           </div>
         )}
 
@@ -574,14 +574,14 @@ export function TransactionsList() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 text-sm font-semibold border-2 border-gray-300 rounded-lg hover:bg-white hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="px-4 py-2 text-sm font-semibold border-2 border-gray-300 rounded-lg hover:bg-white dark:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 ← Precedente
               </button>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 text-sm font-semibold border-2 border-gray-300 rounded-lg hover:bg-white hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="px-4 py-2 text-sm font-semibold border-2 border-gray-300 rounded-lg hover:bg-white dark:bg-gray-700 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 Successiva →
               </button>

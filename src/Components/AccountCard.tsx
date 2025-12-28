@@ -103,7 +103,7 @@ export function AccountCard() {
       </div>
 
       {/* Account Info */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-4">
+      <div className="bg-white dark:bg-gray-700/10 backdrop-blur-sm rounded-lg p-4 mb-4">
         <div className="flex justify-between items-center">
           <div>
             <p className="text-blue-100 text-xs">Account Name</p>
@@ -128,7 +128,7 @@ export function AccountCard() {
       )}
 
       {/* Actions */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+      <div className="bg-white dark:bg-gray-700/10 backdrop-blur-sm rounded-lg p-4">
         <label className="block text-sm font-medium text-blue-100 mb-2">
           Amount (€)
         </label>
@@ -139,7 +139,7 @@ export function AccountCard() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="flex-1 px-4 py-2 rounded-lg bg-white/20 border border-white/30 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50"
+            className="flex-1 px-4 py-2 rounded-lg bg-white dark:bg-gray-700/20 border border-white/30 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50"
           />
           <button
             onClick={handleDeposit}
@@ -161,25 +161,25 @@ export function AccountCard() {
         <div className="mt-3 flex gap-2">
           <button
             onClick={() => setAmount('10')}
-            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-white dark:bg-gray-700/10 hover:bg-white dark:bg-gray-700/20 rounded text-sm transition-colors"
           >
             €10
           </button>
           <button
             onClick={() => setAmount('50')}
-            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-white dark:bg-gray-700/10 hover:bg-white dark:bg-gray-700/20 rounded text-sm transition-colors"
           >
             €50
           </button>
           <button
             onClick={() => setAmount('100')}
-            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-white dark:bg-gray-700/10 hover:bg-white dark:bg-gray-700/20 rounded text-sm transition-colors"
           >
             €100
           </button>
           <button
             onClick={() => setAmount('500')}
-            className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
+            className="px-3 py-1 bg-white dark:bg-gray-700/10 hover:bg-white dark:bg-gray-700/20 rounded text-sm transition-colors"
           >
             €500
           </button>

@@ -1,0 +1,118 @@
+# Finance Manager - Dual License
+
+This software is available under two different licensing options:
+
+---
+
+## 1. MIT License (Personal & Non-Commercial Use)
+
+**For individual, personal, and non-commercial use only.**
+
+MIT License
+
+Copyright (c) 2025 Finance Manager Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+**The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.**
+
+**This license applies ONLY to personal and non-commercial use. Any commercial
+use, business use, or use by organizations requires a separate Commercial License
+(see below).**
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## 2. Commercial License (Paid)
+---
+
+## 2. Commercial License (Paid)
+
+**For any commercial, business, or organizational use.**
+
+All commercial use of this Software requires a separate Commercial License Agreement.
+
+### What requires a Commercial License?
+
+- ✅ Use by businesses or corporations
+- ✅ Use by freelancers for business purposes
+- ✅ Use by employees as part of work duties
+- ✅ Integration into commercial products
+- ✅ Non-profit or educational institutional use
+
+### Commercial License Benefits
+
+- ✅ Unlimited users within your organization
+- ✅ Priority support and maintenance
+- ✅ Service Level Agreement (SLA)
+- ✅ Custom feature development (Enterprise tier)
+- ✅ License compliance assistance
+- ✅ Regular updates and security patches
+
+### Pricing & Plans
+
+- **Startup:** €499/year (up to 10 employees)
+- **Business:** €1,499/year (up to 50 employees)
+- **Enterprise:** Custom pricing (unlimited employees)
+- **Non-Profit:** 50% discount on all tiers
+
+**📄 Full terms:** See [LICENSE-COMMERCIAL.md](LICENSE-COMMERCIAL.md)
+
+### How to Purchase
+
+**Email:** commercial@financemanager.example.com  
+**Website:** https://financemanager.example.com/commercial
+
+---
+
+## Frequently Asked Questions
+
+**Q: I'm a freelancer tracking personal finances. Do I need a commercial license?**  
+A: No, if you're tracking your personal finances, the free MIT license applies.
+
+**Q: I'm a freelancer tracking business finances. Do I need a commercial license?**  
+A: Yes, any business use requires a commercial license.
+
+**Q: Can I try it before buying a commercial license?**  
+A: Yes! You can use the MIT license for evaluation purposes for up to 30 days.
+
+**Q: Can I modify the software under the commercial license?**  
+A: Yes, for internal use only. You cannot redistribute modified versions.
+
+**Q: What happens if I violate the license terms?**  
+A: License violation may result in immediate termination and legal action.
+
+**Q: Can non-profits use it for free?**  
+A: Non-profits must obtain a commercial license but receive a 50% discount.
+
+---
+
+## Summary
+
+| Use Case | License Required | Cost |
+|----------|------------------|------|
+| Personal finance tracking | MIT License | Free |
+| Open source contribution | MIT License | Free |
+| Business/Company use | Commercial License | From €499/year |
+| Freelance business use | Commercial License | From €499/year |
+| Non-profit organization | Commercial License | 50% discount |
+| Educational institution | Commercial License | 50% discount |
+
+---
+
+**By using this Software, you agree to comply with the applicable license terms.**
+
+For questions: legal@financemanager.example.com

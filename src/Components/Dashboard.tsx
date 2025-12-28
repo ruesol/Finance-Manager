@@ -1,4 +1,10 @@
 import { useEffect, useState } from 'react';
+import { 
+  InteractiveStatCard, 
+  InteractiveAccountCard, 
+  SimpleBarChart, 
+  SimplePieChart 
+} from './InteractiveComponents';
 
 const API_URL = 'http://localhost:3001/api';
 
@@ -75,8 +81,8 @@ export function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-96">
         <div className="text-6xl mb-4">⚠️</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Errore di connessione</h3>
-        <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Errore di connessione</h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-4 text-center max-w-md">{error}</p>
         <button
           onClick={loadDashboardData}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -96,94 +102,280 @@ export function Dashboard() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Panoramica delle tue finanze</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">Panoramica delle tue finanze</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
         {/* Total Balance */}
-        <div className="group bg-linear-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-3 text-white transform hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-blue-100 text-sm font-semibold uppercase tracking-wide">Saldo Totale</span>
-            <span className="text-4xl group-hover:scale-110 transition-transform duration-200">💰</span>
-          </div>
-          <div className="text-4xl font-bold mb-2">
-            {formatCurrency(stats.totalBalance)}
-          </div>
-          <div className="text-blue-100 text-sm font-medium">
-            {stats.accountsCount} {stats.accountsCount === 1 ? 'conto' : 'conti'}
-          </div>
-        </div>
+        <InteractiveStatCard
+          title="Saldo Totale"
+          value={formatCurrency(stats.totalBalance)}
+          subtitle={`${stats.accountsCount} ${stats.accountsCount === 1 ? 'conto' : 'conti'}`}
+          icon="💰"
+          gradient="bg-gradient-to-br from-blue-600 to-blue-700"
+          detailContent={
+            <div className="space-y-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  {formatCurrency(stats.totalBalance)}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Somma di tutti i tuoi conti attivi
+                </p>
+              </div>
+              <SimpleBarChart
+                title="Distribuzione per Conto"
+                data={stats.accounts.map(acc => ({
+                  label: acc.name,
+                  value: acc.balance,
+                  color: acc.color
+                }))}
+              />
+            </div>
+          }
+        />
 
         {/* Monthly Income */}
-        <div className="group bg-linear-to-br from-green-500 to-green-600 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-3 text-white transform hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-green-100 text-sm font-semibold uppercase tracking-wide">Entrate Mensili</span>
-            <span className="text-4xl group-hover:scale-110 transition-transform duration-200">📈</span>
-          </div>
-          <div className="text-4xl font-bold mb-2">
-            +{formatCurrency(stats.monthlyIncome)}
-          </div>
-          <div className="text-green-100 text-sm font-medium">
-            Questo mese
-          </div>
-        </div>
+        <InteractiveStatCard
+          title="Entrate Mensili"
+          value={`+${formatCurrency(stats.monthlyIncome)}`}
+          subtitle="Questo mese"
+          icon="📈"
+          gradient="bg-gradient-to-br from-green-500 to-green-600"
+          detailContent={
+            <div className="space-y-6">
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-6">
+                <h3 className="text-3xl font-bold text-green-600 mb-2">
+                  +{formatCurrency(stats.monthlyIncome)}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Totale entrate registrate questo mese
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    Media giornaliera
+                  </div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {formatCurrency(Math.round(stats.monthlyIncome / 30))}
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    Proiezione annuale
+                  </div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {formatCurrency(stats.monthlyIncome * 12)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        />
 
         {/* Monthly Expenses */}
-        <div className="group bg-linear-to-br from-red-500 to-red-600 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-3 text-white transform hover:-translate-y-1">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-red-100 text-sm font-semibold uppercase tracking-wide">Spese Mensili</span>
-            <span className="text-4xl group-hover:scale-110 transition-transform duration-200">📉</span>
-          </div>
-          <div className="text-4xl font-bold mb-2">
-            -{formatCurrency(stats.monthlyExpenses)}
-          </div>
-          <div className="text-red-100 text-sm font-medium">
-            Questo mese
-          </div>
-        </div>
+        <InteractiveStatCard
+          title="Spese Mensili"
+          value={`-${formatCurrency(stats.monthlyExpenses)}`}
+          subtitle="Questo mese"
+          icon="📉"
+          gradient="bg-gradient-to-br from-red-500 to-red-600"
+          detailContent={
+            <div className="space-y-6">
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-6">
+                <h3 className="text-3xl font-bold text-red-600 mb-2">
+                  -{formatCurrency(stats.monthlyExpenses)}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Totale spese registrate questo mese
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    Media giornaliera
+                  </div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    -{formatCurrency(Math.round(stats.monthlyExpenses / 30))}
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    % delle entrate
+                  </div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {stats.monthlyIncome > 0 
+                      ? ((stats.monthlyExpenses / stats.monthlyIncome) * 100).toFixed(0)
+                      : 0}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        />
 
         {/* Savings */}
-        <div className={`group bg-linear-to-br ${savings >= 0 ? 'from-purple-500 to-purple-600' : 'from-orange-500 to-orange-600'} rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-3 text-white transform hover:-translate-y-1`}>
-          <div className="flex items-center justify-between mb-3">
-            <span className={`${savings >= 0 ? 'text-purple-100' : 'text-orange-100'} text-sm font-semibold uppercase tracking-wide`}>Risparmi</span>
-            <span className="text-4xl group-hover:scale-110 transition-transform duration-200">🎯</span>
-          </div>
-          <div className="text-4xl font-bold mb-2">
-            {savings >= 0 ? '+' : ''}{formatCurrency(savings)}
-          </div>
-          <div className={`${savings >= 0 ? 'text-purple-100' : 'text-orange-100'} text-sm font-medium`}>
-            {savingsRate.toFixed(1)}% del reddito
-          </div>
-        </div>
+        <InteractiveStatCard
+          title="Risparmi"
+          value={`${savings >= 0 ? '+' : ''}${formatCurrency(savings)}`}
+          subtitle={`${savingsRate.toFixed(1)}% del reddito`}
+          icon="🎯"
+          gradient={savings >= 0 
+            ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
+            : 'bg-gradient-to-br from-orange-500 to-orange-600'}
+          detailContent={
+            <div className="space-y-6">
+              <div className={`${
+                savings >= 0 
+                  ? 'bg-purple-50 dark:bg-purple-900/20' 
+                  : 'bg-orange-50 dark:bg-orange-900/20'
+              } rounded-xl p-6`}>
+                <h3 className={`text-3xl font-bold mb-2 ${
+                  savings >= 0 ? 'text-purple-600' : 'text-orange-600'
+                }`}>
+                  {savings >= 0 ? '+' : ''}{formatCurrency(savings)}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {savings >= 0 
+                    ? 'Ottimo lavoro! Stai risparmiando questo mese' 
+                    : 'Attenzione: stai spendendo più di quanto guadagni'}
+                </p>
+              </div>
+              
+              <SimplePieChart
+                title="Composizione del Budget"
+                data={[
+                  {
+                    label: 'Entrate',
+                    value: stats.monthlyIncome,
+                    color: '#10b981'
+                  },
+                  {
+                    label: 'Spese',
+                    value: stats.monthlyExpenses,
+                    color: '#ef4444'
+                  }
+                ]}
+              />
+              
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    Tasso di risparmio
+                  </span>
+                  <span className={`text-xl font-bold ${
+                    savingsRate >= 20 ? 'text-green-600' : 
+                    savingsRate >= 10 ? 'text-yellow-600' : 
+                    'text-red-600'
+                  }`}>
+                    {savingsRate.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all ${
+                      savingsRate >= 20 ? 'bg-green-500' : 
+                      savingsRate >= 10 ? 'bg-yellow-500' : 
+                      'bg-red-500'
+                    }`}
+                    style={{ width: `${Math.min(savingsRate, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  {savingsRate >= 20 && 'Eccellente! Continua così 🎉'}
+                  {savingsRate >= 10 && savingsRate < 20 && 'Buono, ma puoi migliorare 👍'}
+                  {savingsRate < 10 && 'Prova a ridurre le spese 💪'}
+                </p>
+              </div>
+            </div>
+          }
+        />
       </div>
 
       {/* Accounts Grid */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">I Tuoi Conti</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
+          <span className="text-2xl">🏦</span>
+          <span>I Tuoi Conti</span>
+          <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+            (clicca per dettagli)
+          </span>
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {stats.accounts.map(account => (
-            <div
+            <InteractiveAccountCard
               key={account.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-              style={{ borderLeftWidth: '4px', borderLeftColor: account.color }}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">{account.icon}</span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{account.name}</h3>
-                    <span className="text-xs text-gray-500 uppercase">{account.type}</span>
+              account={account}
+              formatCurrency={formatCurrency}
+              detailContent={
+                <div className="space-y-6">
+                  <div 
+                    className="rounded-xl p-6"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${account.color}15, ${account.color}05)`,
+                      borderLeft: `6px solid ${account.color}`
+                    }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-5xl">{account.icon}</span>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                          {account.name}
+                        </h3>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                          {account.type}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={`text-4xl font-bold ${
+                      account.balance >= 0 
+                        ? 'text-gray-900 dark:text-gray-100' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {formatCurrency(account.balance, account.currency)}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                        Valuta
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        {account.currency}
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                        Tipo
+                      </div>
+                      <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        {account.type}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      💡 Suggerimenti
+                    </h4>
+                    <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                      {account.balance < 0 && (
+                        <li>⚠️ Il saldo è negativo, pianifica un deposito</li>
+                      )}
+                      {account.balance > 1000000 && (
+                        <li>✨ Ottimo saldo! Considera investimenti o risparmi</li>
+                      )}
+                      <li>📊 Controlla regolarmente le transazioni</li>
+                      <li>🔒 Mantieni sempre il conto sicuro</li>
+                    </ul>
                   </div>
                 </div>
-              </div>
-              <div className="mt-4">
-                <div className={`text-2xl font-bold ${account.balance >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
-                  {formatCurrency(account.balance, account.currency)}
-                </div>
-              </div>
-            </div>
+              }
+            />
           ))}
         </div>
       </div>
@@ -191,8 +383,8 @@ export function Dashboard() {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Monthly Breakdown */}
-        <div className="bg-white rounded-2xl shadow-md border-2 border-gray-100 p-3 hover:shadow-lg transition-shadow duration-300">
-          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-gray-100 p-3 hover:shadow-lg transition-shadow duration-300">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
             <span className="text-2xl">📊</span>
             <span>Riepilogo Mensile</span>
           </h3>
@@ -221,8 +413,8 @@ export function Dashboard() {
         </div>
 
         {/* Quick Info */}
-        <div className="bg-white rounded-2xl shadow-md border-2 border-gray-100 p-3 hover:shadow-lg transition-shadow duration-300">
-          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-gray-100 p-3 hover:shadow-lg transition-shadow duration-300">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
             <span className="text-2xl">ℹ️</span>
             <span>Informazioni</span>
           </h3>

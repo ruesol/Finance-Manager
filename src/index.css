@@ -75,6 +75,14 @@ html {
   animation: fade-in 0.4s ease-out;
 }
 
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 10px;

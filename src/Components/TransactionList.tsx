@@ -17,7 +17,7 @@ export function TransactionList({ transactions, loading }: Props) {
     };
 
     return (
-        <div className="bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
+        <div className="bg-white dark:bg-gray-700 shadow-md rounded-lg overflow-hidden border border-gray-100">
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                     <tr>
@@ -27,7 +27,7 @@ export function TransactionList({ transactions, loading }: Props) {
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                     </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-700 divide-y divide-gray-200">
                     {transactions.map((tx) => {
                         const isExpense = tx.type === TransactionType.EXPENSE;
                         const amountColor = isExpense ? "text-red-600" : "text-green-600";
@@ -38,7 +38,7 @@ export function TransactionList({ transactions, loading }: Props) {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {tx.date.toLocaleDateString()}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                     {tx.description}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

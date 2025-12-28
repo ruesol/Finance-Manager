@@ -43,7 +43,7 @@ export function TransactionForm({ onSuccess }: Props) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-100">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md mb-6 border border-gray-100">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 
                 {/* Description Input */}
@@ -76,7 +76,7 @@ export function TransactionForm({ onSuccess }: Props) {
                     <select 
                         value={type}
                         onChange={(e) => setType(e.target.value as TransactionType)}
-                        className="p-2 border border-gray-300 rounded bg-white"
+                        className="p-2 border border-gray-300 rounded bg-white dark:bg-gray-700"
                         aria-label="Transaction type"
                     >
                         <option value={TransactionType.EXPENSE}>Expense</option>

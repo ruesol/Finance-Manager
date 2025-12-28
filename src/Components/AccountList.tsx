@@ -178,8 +178,8 @@ export function AccountList() {
     return (
       <div className="flex flex-col items-center justify-center min-h-96">
         <div className="text-6xl mb-4">⚠️</div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Errore di connessione</h3>
-        <p className="text-gray-600 mb-4">{error}</p>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Errore di connessione</h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
         <button
           onClick={loadAccounts}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -195,11 +195,11 @@ export function AccountList() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 flex items-center gap-3">
             <span className="text-5xl">🏦</span>
             <span>Conti</span>
           </h1>
-          <p className="text-gray-600 mt-2 text-lg">Gestisci i tuoi conti bancari e wallet</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">Gestisci i tuoi conti bancari e wallet</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -215,8 +215,8 @@ export function AccountList() {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             {editingAccount ? 'Modifica Conto' : 'Nuovo Conto'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -370,14 +370,14 @@ export function AccountList() {
         {accountsList.map(account => (
           <div
             key={account.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow"
+            className="bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow"
             style={{ borderLeftWidth: '4px', borderLeftColor: account.color || '#3B82F6' }}
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{account.icon || '💰'}</span>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{account.name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">{account.name}</h3>
                   <span className="text-xs text-gray-500 uppercase">
                     {accountTypeLabels[account.type] || account.type}
                   </span>
@@ -386,14 +386,14 @@ export function AccountList() {
             </div>
 
             {account.description && (
-              <p className="text-sm text-gray-600 mb-3">{account.description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{account.description}</p>
             )}
 
             {account.accountNumber && (
               <p className="text-xs text-gray-500 mb-3 font-mono">{account.accountNumber}</p>
             )}
 
-            <div className={`text-2xl font-bold mb-4 ${account.balance >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold mb-4 ${account.balance >= 0 ? 'text-gray-900 dark:text-gray-100' : 'text-red-600'}`}>
               {formatCurrency(account.balance, account.currency)}
             </div>
 
@@ -418,8 +418,8 @@ export function AccountList() {
       {accountsList.length === 0 && !showForm && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🏦</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Nessun conto trovato</h3>
-          <p className="text-gray-600 mb-4">Crea il tuo primo conto per iniziare</p>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Nessun conto trovato</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">Crea il tuo primo conto per iniziare</p>
           <button
             onClick={() => setShowForm(true)}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
