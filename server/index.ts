@@ -1,8 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { clerkClient, verifyToken } from '@clerk/backend';
 import { db } from '../src/db/index';
 import { accounts, transactions, categories, tags } from '../src/db/schema';
-import { eq, isNull, gte, desc, sql } from 'drizzle-orm';
+import { eq, isNull, gte, desc, sql, and } from 'drizzle-orm';
 
 const app = express();
 const PORT = 3001;
@@ -10,17 +12,99 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
+// Clerk authentication middleware
+const authenticateClerk = async (req: any, res: any, next: any) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No authorization header or invalid format');
+      return res.status(401).json({ error: 'Unauthorized - Missing token' });
+    }
+
+    const token = authHeader.substring(7);
+    
+    // Debug: Check environment variables
+    const hasSecretKey = !!process.env.CLERK_SECRET_KEY;
+    const hasJwtKey = !!process.env.CLERK_JWT_KEY;
+    console.log(`🔑 Auth attempt - SecretKey: ${hasSecretKey}, JwtKey: ${hasJwtKey}`);
+    
+    // Configure verification options
+    const verifyOptions: any = {
+      secretKey: process.env.CLERK_SECRET_KEY!
+    };
+    
+    // Add jwtKey if available (for JWK resolution)
+    if (process.env.CLERK_JWT_KEY) {
+      verifyOptions.jwtKey = process.env.CLERK_JWT_KEY;
+    }
+    
+    console.log('🔐 Verifying token...');
+    console.log('📝 Token preview:', token.substring(0, 50) + '...');
+    console.log('🔑 Using secretKey:', process.env.CLERK_SECRET_KEY?.substring(0, 15) + '...');
+    const verified = await verifyToken(token, verifyOptions);
+    console.log('✅ Token verified successfully, userId:', verified.sub);
+
+    if (!verified || !verified.sub) {
+      return res.status(401).json({ error: 'Unauthorized - Invalid token' });
+    }
+
+    req.userId = verified.sub;
+    next();
+  } catch (error) {
+    console.error('❌ Auth error:', error);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+};
+
+// ============================================
+// ONBOARDING UTILITIES
+// ============================================
+
+const DEFAULT_CATEGORIES = [
+  { name: 'Alimentari', icon: '🛒', color: '#10B981', sortOrder: 1 },
+  { name: 'Ristoranti', icon: '🍽️', color: '#F59E0B', sortOrder: 2 },
+  { name: 'Trasporti', icon: '🚗', color: '#3B82F6', sortOrder: 3 },
+  { name: 'Bollette', icon: '💡', color: '#EF4444', sortOrder: 4 },
+  { name: 'Affitto', icon: '🏠', color: '#DC2626', sortOrder: 5 },
+  { name: 'Salute', icon: '⚕️', color: '#EC4899', sortOrder: 6 },
+  { name: 'Intrattenimento', icon: '🎮', color: '#8B5CF6', sortOrder: 7 },
+  { name: 'Shopping', icon: '🛍️', color: '#F97316', sortOrder: 8 },
+  { name: 'Stipendio', icon: '💼', color: '#22C55E', sortOrder: 9 },
+  { name: 'Freelance', icon: '💻', color: '#3B82F6', sortOrder: 10 }
+];
+
+// Initialize default categories for new users
+async function ensureUserHasCategories(userId: string) {
+  const existingCategories = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.userId, userId))
+    .limit(1);
+
+  if (existingCategories.length === 0) {
+    console.log(`🎯 Onboarding user ${userId}: Creating default categories`);
+    await db.insert(categories).values(
+      DEFAULT_CATEGORIES.map(cat => ({ ...cat, userId }))
+    );
+  }
+}
+
 // ============================================
 // ACCOUNTS ENDPOINTS
 // ============================================
 
 // GET all accounts
-app.get('/api/accounts', async (req, res) => {
+app.get('/api/accounts', authenticateClerk, async (req: any, res) => {
   try {
+    const userId = req.userId;
+    
     const result = await db
       .select()
       .from(accounts)
-      .where(isNull(accounts.deletedAt));
+      .where(and(
+        eq(accounts.userId, userId),
+        isNull(accounts.deletedAt)
+      ));
     res.json(result);
   } catch (error) {
     console.error('Error fetching accounts:', error);
@@ -29,9 +113,17 @@ app.get('/api/accounts', async (req, res) => {
 });
 
 // POST create account
-app.post('/api/accounts', async (req, res) => {
+app.post('/api/accounts', authenticateClerk, async (req: any, res) => {
   try {
-    const result = await db.insert(accounts).values(req.body).returning();
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const result = await db.insert(accounts).values({
+      ...req.body,
+      userId
+    }).returning();
     res.json(result[0]);
   } catch (error) {
     console.error('Error creating account:', error);
@@ -40,13 +132,21 @@ app.post('/api/accounts', async (req, res) => {
 });
 
 // PUT update account
-app.put('/api/accounts/:id', async (req, res) => {
+app.put('/api/accounts/:id', authenticateClerk, async (req: any, res) => {
   try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
     const { id } = req.params;
     const result = await db
       .update(accounts)
       .set({ ...req.body, updatedAt: new Date() })
-      .where(eq(accounts.id, id))
+      .where(and(
+        eq(accounts.id, id),
+        eq(accounts.userId, userId)
+      ))
       .returning();
     res.json(result[0]);
   } catch (error) {
@@ -56,13 +156,21 @@ app.put('/api/accounts/:id', async (req, res) => {
 });
 
 // DELETE account (soft delete)
-app.delete('/api/accounts/:id', async (req, res) => {
+app.delete('/api/accounts/:id', authenticateClerk, async (req: any, res) => {
   try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
     const { id } = req.params;
     await db
       .update(accounts)
       .set({ deletedAt: new Date() })
-      .where(eq(accounts.id, id));
+      .where(and(
+        eq(accounts.id, id),
+        eq(accounts.userId, userId)
+      ));
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting account:', error);
@@ -75,8 +183,13 @@ app.delete('/api/accounts/:id', async (req, res) => {
 // ============================================
 
 // GET all transactions with joins
-app.get('/api/transactions', async (req, res) => {
+app.get('/api/transactions', authenticateClerk, async (req: any, res) => {
   try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
     const result = await db
       .select({
         id: transactions.id,
@@ -94,12 +207,17 @@ app.get('/api/transactions', async (req, res) => {
         description: transactions.description,
         notes: transactions.notes,
         merchantName: transactions.merchantName,
-        toAccountId: transactions.toAccountId
+        toAccountId: transactions.toAccountId,
+        createdAt: transactions.createdAt,
+        updatedAt: transactions.updatedAt
       })
       .from(transactions)
       .leftJoin(accounts, eq(transactions.accountId, accounts.id))
       .leftJoin(categories, eq(transactions.categoryId, categories.id))
-      .where(isNull(transactions.deletedAt))
+      .where(and(
+        eq(transactions.userId, userId),
+        isNull(transactions.deletedAt)
+      ))
       .orderBy(desc(transactions.date));
 
     // Get toAccount names for transfers
@@ -125,11 +243,31 @@ app.get('/api/transactions', async (req, res) => {
 });
 
 // POST create transaction
-app.post('/api/transactions', async (req, res) => {
+app.post('/api/transactions', authenticateClerk, async (req: any, res) => {
   try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    // Verify account belongs to user
+    const account = await db
+      .select()
+      .from(accounts)
+      .where(and(
+        eq(accounts.id, req.body.accountId),
+        eq(accounts.userId, userId)
+      ))
+      .limit(1);
+      
+    if (!account.length) {
+      return res.status(403).json({ error: 'Account not found or unauthorized' });
+    }
+    
     // Convert date string to Date object
     const data = {
       ...req.body,
+      userId,
       date: new Date(req.body.date)
     };
     const result = await db.insert(transactions).values(data).returning();
@@ -141,9 +279,29 @@ app.post('/api/transactions', async (req, res) => {
 });
 
 // DELETE transaction (soft delete)
-app.delete('/api/transactions/:id', async (req, res) => {
+app.delete('/api/transactions/:id', authenticateClerk, async (req: any, res) => {
   try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
     const { id } = req.params;
+    
+    // Verify transaction belongs to user directly
+    const txCheck = await db
+      .select()
+      .from(transactions)
+      .where(and(
+        eq(transactions.id, id),
+        eq(transactions.userId, userId)
+      ))
+      .limit(1);
+      
+    if (!txCheck.length) {
+      return res.status(404).json({ error: 'Transaction not found or unauthorized' });
+    }
+    
     await db
       .update(transactions)
       .set({ deletedAt: new Date() })
@@ -160,9 +318,20 @@ app.delete('/api/transactions/:id', async (req, res) => {
 // ============================================
 
 // GET all categories
-app.get('/api/categories', async (req, res) => {
+app.get('/api/categories', authenticateClerk, async (req: any, res) => {
   try {
-    const result = await db.select().from(categories);
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    // Ensure user has default categories (onboarding)
+    await ensureUserHasCategories(userId);
+    
+    const result = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.userId, userId));
     res.json(result);
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -174,13 +343,21 @@ app.get('/api/categories', async (req, res) => {
 // DASHBOARD STATS ENDPOINT
 // ============================================
 
-app.get('/api/dashboard/stats', async (req, res) => {
+app.get('/api/dashboard/stats', authenticateClerk, async (req: any, res) => {
   try {
-    // Get all accounts
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    // Get all accounts for this user
     const allAccounts = await db
       .select()
       .from(accounts)
-      .where(isNull(accounts.deletedAt));
+      .where(and(
+        eq(accounts.userId, userId),
+        isNull(accounts.deletedAt)
+      ));
 
     // Calculate total balance
     const totalBalance = allAccounts.reduce((sum, acc) => sum + acc.balance, 0);
@@ -189,11 +366,20 @@ app.get('/api/dashboard/stats', async (req, res) => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Get monthly transactions
+    // Get monthly transactions for user directly
     const monthlyTxs = await db
-      .select()
+      .select({
+        id: transactions.id,
+        amount: transactions.amount,
+        type: transactions.type,
+        date: transactions.date,
+        deletedAt: transactions.deletedAt
+      })
       .from(transactions)
-      .where(isNull(transactions.deletedAt));
+      .where(and(
+        eq(transactions.userId, userId),
+        isNull(transactions.deletedAt)
+      ));
 
     // Filter by current month
     const monthlyTxsFiltered = monthlyTxs.filter(
@@ -210,9 +396,7 @@ app.get('/api/dashboard/stats', async (req, res) => {
       .reduce((sum, t) => sum + t.amount, 0);
 
     // Total transactions count
-    const transactionsCount = monthlyTxs.filter(
-      t => t.deletedAt === null
-    ).length;
+    const transactionsCount = monthlyTxs.length;
 
     res.json({
       totalBalance,

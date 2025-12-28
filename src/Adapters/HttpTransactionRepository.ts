@@ -23,9 +23,14 @@ interface ApiTransactionDto {
 
 export class HttpTransactionRepository implements TransactionRepository {
     private readonly baseUrl = API_URL;
+    private fetchFn: typeof fetch;
+
+    constructor(fetchFn: typeof fetch = fetch) {
+        this.fetchFn = fetchFn;
+    }
 
     async getAll(): Promise<Transaction[]> {
-        const res = await fetch(`${this.baseUrl}/transactions`);
+        const res = await this.fetchFn(`${this.baseUrl}/transactions`);
         if (!res.ok) {
             throw new Error(`Failed to fetch transactions: ${res.statusText}`);
         }
@@ -55,7 +60,7 @@ export class HttpTransactionRepository implements TransactionRepository {
         const day = String(localDate.getDate()).padStart(2, '0');
         const dateString = `${year}-${month}-${day}`;
 
-        const res = await fetch(`${this.baseUrl}/transactions`, {
+        const res = await this.fetchFn(`${this.baseUrl}/transactions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

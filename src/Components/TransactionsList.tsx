@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 import { TransactionForm } from './TransactionForm';
 import { API_URL } from '../config';
 
@@ -23,6 +24,7 @@ interface Transaction {
 }
 
 export function TransactionsList() {
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [transactionsList, setTransactionsList] = useState<Transaction[]>([]);
   const [accountsList, setAccountsList] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
@@ -44,28 +46,36 @@ export function TransactionsList() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isLoaded && isSignedIn) {
+      loadData();
+    } else if (isLoaded && !isSignedIn) {
+      setLoading(false);
+      setError('Devi effettuare il login per visualizzare le transazioni.');
+    }
+  }, [isLoaded, isSignedIn]);
 
   async function loadData() {
     try {
       setLoading(true);
       setError(null);
 
+      const token = await getToken();
+      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+
       // Load accounts
-      const accountsRes = await fetch(`${API_URL}/accounts`);
+      const accountsRes = await fetch(`${API_URL}/accounts`, { headers });
       if (!accountsRes.ok) throw new Error('Failed to fetch accounts');
       const accountsData = await accountsRes.json();
       setAccountsList(accountsData);
 
       // Load categories
-      const categoriesRes = await fetch(`${API_URL}/categories`);
+      const categoriesRes = await fetch(`${API_URL}/categories`, { headers });
       if (!categoriesRes.ok) throw new Error('Failed to fetch categories');
       const categoriesData = await categoriesRes.json();
       setCategoriesList(categoriesData);
 
       // Load transactions
-      const txsRes = await fetch(`${API_URL}/transactions`);
+      const txsRes = await fetch(`${API_URL}/transactions`, { headers });
       if (!txsRes.ok) throw new Error('Failed to fetch transactions');
       const txsData = await txsRes.json();
       setTransactionsList(txsData);
@@ -81,8 +91,10 @@ export function TransactionsList() {
     if (!confirm('Sei sicuro di voler eliminare questa transazione?')) return;
 
     try {
+      const token = await getToken();
       const response = await fetch(`${API_URL}/transactions/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
       if (!response.ok) throw new Error('Failed to delete transaction');

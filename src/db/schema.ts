@@ -39,6 +39,7 @@ export const accounts = pgTable(
   'accounts',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     type: accountTypeEnum('type').notNull(),
     balance: integer('balance').notNull().default(0),
@@ -56,6 +57,7 @@ export const accounts = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true })
   },
   (table) => ({
+    userIdIdx: index('accounts_user_id_idx').on(table.userId),
     nameIdx: index('accounts_name_idx').on(table.name),
     typeIdx: index('accounts_type_idx').on(table.type),
     typeNameIdx: index('accounts_type_name_idx').on(table.type, table.name),
@@ -71,6 +73,7 @@ export const categories = pgTable(
   'categories',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
     name: varchar('name', { length: 100 }).notNull(),
     parentId: uuid('parent_id'),
     icon: varchar('icon', { length: 10 }),
@@ -86,6 +89,7 @@ export const categories = pgTable(
       .defaultNow()
   },
   (table) => ({
+    userIdIdx: index('categories_user_id_idx').on(table.userId),
     nameIdx: index('categories_name_idx').on(table.name),
     parentIdx: index('categories_parent_idx').on(table.parentId),
     nameParentUnique: uniqueIndex('categories_name_parent_unique')
@@ -97,7 +101,8 @@ export const tags = pgTable(
   'tags',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    name: varchar('name', { length: 50 }).notNull().unique(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
+    name: varchar('name', { length: 50 }).notNull(),
     color: varchar('color', { length: 7 }),
     
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -105,7 +110,8 @@ export const tags = pgTable(
       .defaultNow()
   },
   (table) => ({
-    nameIdx: uniqueIndex('tags_name_idx').on(table.name)
+    userIdIdx: index('tags_user_id_idx').on(table.userId),
+    userNameUnique: uniqueIndex('tags_user_name_unique').on(table.userId, table.name)
   })
 );
 
@@ -113,6 +119,7 @@ export const transactions = pgTable(
   'transactions',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
     accountId: uuid('account_id')
       .notNull()
       .references(() => accounts.id, {
@@ -145,8 +152,10 @@ export const transactions = pgTable(
     deletedAt: timestamp('deleted_at', { withTimezone: true })
   },
   (table) => ({
+    userIdIdx: index('transactions_user_id_idx').on(table.userId),
     accountIdx: index('transactions_account_idx').on(table.accountId),
     dateIdx: index('transactions_date_idx').on(table.date.desc()),
+    userDateIdx: index('transactions_user_date_idx').on(table.userId, table.date.desc()),
     accountDateIdx: index('transactions_account_date_idx')
       .on(table.accountId, table.date.desc()),
     categoryIdx: index('transactions_category_idx').on(table.categoryId),

@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect } from 'react';
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/clerk-react';
 import { Dashboard } from './Components/Dashboard';
 import { AccountList } from './Components/AccountList';
 import { TransactionsList } from './Components/TransactionsList';
@@ -7,6 +8,7 @@ type Page = 'dashboard' | 'accounts' | 'transactions';
 type Theme = 'light' | 'dark' | 'system';
 
 function App() {
+  const { isSignedIn, isLoaded } = useUser();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('theme');
@@ -108,10 +110,34 @@ function App() {
                 </span>
               </button>
               
+              {/* Auth Buttons */}
+              {!isLoaded ? (
+                <div className="ml-2 p-3 rounded-xl bg-white dark:bg-gray-700 shadow-md">
+                  <span className="text-gray-500">⏳</span>
+                </div>
+              ) : !isSignedIn ? (
+                <div className="flex items-center gap-2 ml-2">
+                  <SignInButton mode="modal">
+                    <button className="px-4 py-2 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:shadow-lg transition-all duration-200">
+                      Accedi
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold hover:shadow-lg transition-all duration-200">
+                      Registrati
+                    </button>
+                  </SignUpButton>
+                </div>
+              ) : (
+                <div className="ml-2">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              )}
+              
               {/* Theme Toggle */}
               <button
                 onClick={handleThemeChange}
-                className="ml-2 p-3 rounded-xl bg-white hover:bg-white dark:bg-gray-700 dark:hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                className="p-3 rounded-xl bg-white hover:bg-white dark:bg-gray-700 dark:hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg"
                 title={`Tema: ${theme === 'system' ? 'Sistema' : theme === 'dark' ? 'Scuro' : 'Chiaro'}`}
               >
                 <span className="text-2xl">{getThemeIcon()}</span>
@@ -123,11 +149,44 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-12">
-        <div className="animate-fade-in">
-          {currentPage === 'dashboard' && <Dashboard />}
-          {currentPage === 'accounts' && <AccountList />}
-          {currentPage === 'transactions' && <TransactionsList />}
-        </div>
+        {!isLoaded ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="text-6xl mb-4">⏳</div>
+              <p className="text-gray-600 dark:text-gray-400">Caricamento...</p>
+            </div>
+          </div>
+        ) : !isSignedIn ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center max-w-md">
+              <div className="text-6xl mb-4">🔐</div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                Accedi per continuare
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Effettua l'accesso o registrati per gestire le tue finanze personali in modo sicuro.
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <SignInButton mode="modal">
+                  <button className="px-6 py-3 rounded-xl bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:shadow-lg transition-all duration-200">
+                    Accedi
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold hover:shadow-lg transition-all duration-200">
+                    Registrati
+                  </button>
+                </SignUpButton>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="animate-fade-in">
+            {currentPage === 'dashboard' && <Dashboard />}
+            {currentPage === 'accounts' && <AccountList />}
+            {currentPage === 'transactions' && <TransactionsList />}
+          </div>
+        )}
       </main>
 
       {/* Footer */}

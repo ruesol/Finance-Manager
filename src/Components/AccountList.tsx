@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-
-const API_URL = 'http://localhost:3001/api';
+import { useAuth } from '@clerk/clerk-react';
+import { API_URL } from '../config';
 
 interface Account {
   id: string;
@@ -15,6 +15,7 @@ interface Account {
 }
 
 export function AccountList() {
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [accountsList, setAccountsList] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -34,15 +35,23 @@ export function AccountList() {
   });
 
   useEffect(() => {
-    loadAccounts();
-  }, []);
+    if (isLoaded && isSignedIn) {
+      loadAccounts();
+    } else if (isLoaded && !isSignedIn) {
+      setLoading(false);
+      setError('Devi effettuare il login per visualizzare gli account.');
+    }
+  }, [isLoaded, isSignedIn]);
 
   async function loadAccounts() {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_URL}/accounts`);
+      const token = await getToken();
+      const response = await fetch(`${API_URL}/accounts`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       if (!response.ok) throw new Error('Failed to fetch accounts');
       
       const result = await response.json();
@@ -72,11 +81,16 @@ export function AccountList() {
         accountNumber: formData.accountNumber || null
       };
 
+      const token = await getToken();
+
       if (editingAccount) {
         // Update
         const response = await fetch(`${API_URL}/accounts/${editingAccount.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+          },
           body: JSON.stringify(payload)
         });
         
@@ -85,7 +99,10 @@ export function AccountList() {
         // Create
         const response = await fetch(`${API_URL}/accounts`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` })
+          },
           body: JSON.stringify(payload)
         });
         
@@ -105,8 +122,10 @@ export function AccountList() {
     if (!confirm('Sei sicuro di voler eliminare questo conto?')) return;
 
     try {
+      const token = await getToken();
       const response = await fetch(`${API_URL}/accounts/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
       if (!response.ok) throw new Error('Failed to delete account');

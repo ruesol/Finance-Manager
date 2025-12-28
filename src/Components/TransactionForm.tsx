@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import { useServices } from "../Context/ServiceContext";
 import { Transaction, TransactionType, TransactionStatus } from "../Transaction";
 import { Money } from "../Money";
@@ -21,6 +22,7 @@ interface Category {
 }
 
 export function TransactionForm({ onSuccess }: Props) {
+    const { getToken } = useAuth();
     const { transactionRepo } = useServices();
     const [amount, setAmount] = useState("");
     const [description, setDescription] = useState("");
@@ -35,9 +37,12 @@ export function TransactionForm({ onSuccess }: Props) {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const token = await getToken();
+                const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+                
                 const [accountsRes, categoriesRes] = await Promise.all([
-                    fetch(`${API_URL}/accounts`),
-                    fetch(`${API_URL}/categories`)
+                    fetch(`${API_URL}/accounts`, { headers }),
+                    fetch(`${API_URL}/categories`, { headers })
                 ]);
                 
                 const accountsData = await accountsRes.json();

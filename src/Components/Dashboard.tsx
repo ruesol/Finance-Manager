@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '@clerk/clerk-react';
 import { 
   InteractiveStatCard, 
   InteractiveAccountCard, 
   SimpleBarChart, 
   SimplePieChart 
 } from './InteractiveComponents';
-
-const API_URL = 'http://localhost:3001/api';
+import { API_URL } from '../config';
 
 interface DashboardStats {
   totalBalance: number;
@@ -28,6 +28,7 @@ interface AccountSummary {
 }
 
 export function Dashboard() {
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalBalance: 0,
     monthlyIncome: 0,
@@ -40,15 +41,24 @@ export function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    // Wait for Clerk to load and verify user is signed in
+    if (isLoaded && isSignedIn) {
+      loadDashboardData();
+    } else if (isLoaded && !isSignedIn) {
+      setLoading(false);
+      setError('Devi effettuare il login per visualizzare la dashboard.');
+    }
+  }, [isLoaded, isSignedIn]);
 
   async function loadDashboardData() {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_URL}/dashboard/stats`);
+      const token = await getToken();
+      const response = await fetch(`${API_URL}/dashboard/stats`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       if (!response.ok) throw new Error('Failed to fetch dashboard data');
       
       const data = await response.json();

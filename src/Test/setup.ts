@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import React from 'react';
 
 // Mock import.meta for Vite environment variables
 (global as any).import = {
@@ -69,3 +70,25 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock fetch for tests
 global.fetch = jest.fn() as jest.Mock;
+
+// Mock Clerk authentication
+jest.mock('@clerk/clerk-react', () => ({
+  useAuth: () => ({
+    getToken: jest.fn().mockResolvedValue('mock-jwt-token'),
+    isSignedIn: true,
+    isLoaded: true,
+    userId: 'test-user-id',
+  }),
+  ClerkProvider: ({ children }: any) => children,
+  SignInButton: jest.fn(({ children }: any) => children),
+  SignUpButton: jest.fn(({ children }: any) => children),
+  UserButton: jest.fn(() => null),
+  useUser: () => ({
+    isSignedIn: true,
+    isLoaded: true,
+    user: { 
+      id: 'test-user-id',
+      primaryEmailAddress: { emailAddress: 'test@example.com' }
+    }
+  })
+}));

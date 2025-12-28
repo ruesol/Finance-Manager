@@ -4,6 +4,8 @@ import { accounts, transactions, categories, tags, transactionTags } from './sch
 async function seed() {
   console.log('🌱 Seeding database...\n');
 
+  const TEST_USER_ID = 'user_test_demo_123';
+
   try {
     console.log('📊 Creating accounts...');
     const accountsData = await db.insert(accounts).values([
@@ -15,7 +17,8 @@ async function seed() {
         description: 'Conto principale per spese quotidiane',
         icon: '🏦',
         color: '#3B82F6',
-        accountNumber: 'IT60X0542811101000000123456'
+        accountNumber: 'IT60X0542811101000000123456',
+        userId: TEST_USER_ID
       },
       {
         name: 'Conto Risparmio',
@@ -24,7 +27,8 @@ async function seed() {
         currency: 'EUR',
         description: 'Risparmi per emergenze',
         icon: '💰',
-        color: '#10B981'
+        color: '#10B981',
+        userId: TEST_USER_ID
       },
       {
         name: 'Portafoglio',
@@ -33,7 +37,8 @@ async function seed() {
         currency: 'EUR',
         description: 'Contanti',
         icon: '👛',
-        color: '#F59E0B'
+        color: '#F59E0B',
+        userId: TEST_USER_ID
       },
       {
         name: 'Carta di Credito',
@@ -43,7 +48,8 @@ async function seed() {
         description: 'Carta di credito Visa',
         icon: '💳',
         color: '#EF4444',
-        accountNumber: '**** **** **** 4567'
+        accountNumber: '**** **** **** 4567',
+        userId: TEST_USER_ID
       },
       {
         name: 'Investimenti',
@@ -52,7 +58,8 @@ async function seed() {
         currency: 'EUR',
         description: 'Portfolio ETF e azioni',
         icon: '📈',
-        color: '#8B5CF6'
+        color: '#8B5CF6',
+        userId: TEST_USER_ID
       }
     ]).returning();
 
@@ -60,34 +67,34 @@ async function seed() {
 
     console.log('📁 Creating categories...');
     const categoriesData = await db.insert(categories).values([
-      { name: 'Alimentari', icon: '🛒', color: '#10B981', sortOrder: 1 },
-      { name: 'Ristoranti', icon: '🍽️', color: '#F59E0B', sortOrder: 2 },
-      { name: 'Trasporti', icon: '🚗', color: '#3B82F6', sortOrder: 3 },
-      { name: 'Bollette', icon: '💡', color: '#EF4444', sortOrder: 4 },
-      { name: 'Affitto', icon: '🏠', color: '#DC2626', sortOrder: 5 },
-      { name: 'Salute', icon: '⚕️', color: '#EC4899', sortOrder: 6 },
-      { name: 'Intrattenimento', icon: '🎮', color: '#8B5CF6', sortOrder: 7 },
-      { name: 'Shopping', icon: '🛍️', color: '#F97316', sortOrder: 8 },
-      { name: 'Viaggi', icon: '✈️', color: '#06B6D4', sortOrder: 9 },
-      { name: 'Sport', icon: '⚽', color: '#14B8A6', sortOrder: 10 },
-      { name: 'Stipendio', icon: '💼', color: '#22C55E', sortOrder: 11 },
-      { name: 'Freelance', icon: '💻', color: '#3B82F6', sortOrder: 12 },
-      { name: 'Investimenti', icon: '📊', color: '#8B5CF6', sortOrder: 13 },
-      { name: 'Rimborsi', icon: '💸', color: '#10B981', sortOrder: 14 }
+      { name: 'Alimentari', icon: '🛒', color: '#10B981', sortOrder: 1, userId: TEST_USER_ID },
+      { name: 'Ristoranti', icon: '🍽️', color: '#F59E0B', sortOrder: 2, userId: TEST_USER_ID },
+      { name: 'Trasporti', icon: '🚗', color: '#3B82F6', sortOrder: 3, userId: TEST_USER_ID },
+      { name: 'Bollette', icon: '💡', color: '#EF4444', sortOrder: 4, userId: TEST_USER_ID },
+      { name: 'Affitto', icon: '🏠', color: '#DC2626', sortOrder: 5, userId: TEST_USER_ID },
+      { name: 'Salute', icon: '⚕️', color: '#EC4899', sortOrder: 6, userId: TEST_USER_ID },
+      { name: 'Intrattenimento', icon: '🎮', color: '#8B5CF6', sortOrder: 7, userId: TEST_USER_ID },
+      { name: 'Shopping', icon: '🛍️', color: '#F97316', sortOrder: 8, userId: TEST_USER_ID },
+      { name: 'Viaggi', icon: '✈️', color: '#06B6D4', sortOrder: 9, userId: TEST_USER_ID },
+      { name: 'Sport', icon: '⚽', color: '#14B8A6', sortOrder: 10, userId: TEST_USER_ID },
+      { name: 'Stipendio', icon: '💼', color: '#22C55E', sortOrder: 11, userId: TEST_USER_ID },
+      { name: 'Freelance', icon: '💻', color: '#3B82F6', sortOrder: 12, userId: TEST_USER_ID },
+      { name: 'Investimenti', icon: '📊', color: '#8B5CF6', sortOrder: 13, userId: TEST_USER_ID },
+      { name: 'Rimborsi', icon: '💸', color: '#10B981', sortOrder: 14, userId: TEST_USER_ID }
     ]).returning();
 
     console.log(`✅ Created ${categoriesData.length} categories\n`);
 
     console.log('🏷️ Creating tags...');
     const tagsData = await db.insert(tags).values([
-      { name: 'Urgente', color: '#EF4444' },
-      { name: 'Ricorrente', color: '#3B82F6' },
-      { name: 'Lavoro', color: '#8B5CF6' },
-      { name: 'Personale', color: '#10B981' },
-      { name: 'Famiglia', color: '#F59E0B' },
-      { name: 'Vacanza', color: '#06B6D4' },
-      { name: 'Regalo', color: '#EC4899' },
-      { name: 'Tasse', color: '#DC2626' }
+      { name: 'Urgente', color: '#EF4444', userId: TEST_USER_ID },
+      { name: 'Ricorrente', color: '#3B82F6', userId: TEST_USER_ID },
+      { name: 'Lavoro', color: '#8B5CF6', userId: TEST_USER_ID },
+      { name: 'Personale', color: '#10B981', userId: TEST_USER_ID },
+      { name: 'Famiglia', color: '#F59E0B', userId: TEST_USER_ID },
+      { name: 'Vacanza', color: '#06B6D4', userId: TEST_USER_ID },
+      { name: 'Regalo', color: '#EC4899', userId: TEST_USER_ID },
+      { name: 'Tasse', color: '#DC2626', userId: TEST_USER_ID }
     ]).returning();
 
     console.log(`✅ Created ${tagsData.length} tags\n`);
@@ -111,6 +118,7 @@ async function seed() {
     const transactionsData = await db.insert(transactions).values([
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         amount: 250000,
         currency: 'EUR',
         date: daysAgo(30),
@@ -122,6 +130,7 @@ async function seed() {
       },
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         amount: 80000,
         currency: 'EUR',
         date: daysAgo(25),
@@ -133,6 +142,7 @@ async function seed() {
       },
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         amount: 15000,
         currency: 'EUR',
         date: daysAgo(20),
@@ -144,6 +154,7 @@ async function seed() {
       },
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         amount: 12500,
         currency: 'EUR',
         date: daysAgo(15),
@@ -156,6 +167,7 @@ async function seed() {
       },
       {
         accountId: credit.id,
+        userId: TEST_USER_ID,
         amount: 6500,
         currency: 'EUR',
         date: daysAgo(12),
@@ -167,6 +179,7 @@ async function seed() {
       },
       {
         accountId: credit.id,
+        userId: TEST_USER_ID,
         amount: 7500,
         currency: 'EUR',
         date: daysAgo(10),
@@ -178,6 +191,7 @@ async function seed() {
       },
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         amount: 9500,
         currency: 'EUR',
         date: daysAgo(8),
@@ -189,6 +203,7 @@ async function seed() {
       },
       {
         accountId: wallet.id,
+        userId: TEST_USER_ID,
         amount: 2500,
         currency: 'EUR',
         date: daysAgo(7),
@@ -200,6 +215,7 @@ async function seed() {
       },
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         amount: 80000,
         currency: 'EUR',
         date: daysAgo(5),
@@ -211,6 +227,7 @@ async function seed() {
       },
       {
         accountId: wallet.id,
+        userId: TEST_USER_ID,
         amount: 3500,
         currency: 'EUR',
         date: daysAgo(4),
@@ -222,6 +239,7 @@ async function seed() {
       },
       {
         accountId: credit.id,
+        userId: TEST_USER_ID,
         amount: 12000,
         currency: 'EUR',
         date: daysAgo(3),
@@ -233,6 +251,7 @@ async function seed() {
       },
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         amount: 8500,
         currency: 'EUR',
         date: daysAgo(2),
@@ -244,6 +263,7 @@ async function seed() {
       },
       {
         accountId: checking.id,
+        userId: TEST_USER_ID,
         toAccountId: savings.id,
         amount: 50000,
         currency: 'EUR',
@@ -254,6 +274,7 @@ async function seed() {
       },
       {
         accountId: wallet.id,
+        userId: TEST_USER_ID,
         amount: 450,
         currency: 'EUR',
         date: new Date(),
@@ -265,6 +286,7 @@ async function seed() {
       },
       {
         accountId: credit.id,
+        userId: TEST_USER_ID,
         amount: 15000,
         currency: 'EUR',
         date: new Date(),
