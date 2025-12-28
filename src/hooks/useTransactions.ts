@@ -11,7 +11,6 @@ export function useTransactions() {
         setLoading(true);
         try {
             const data = await transactionRepo.getAll();
-            // Ordiniamo per data decrescente (più recente in alto)
             setTransactions(data.sort((a, b) => b.date.getTime() - a.date.getTime()));
         } finally {
             setLoading(false);

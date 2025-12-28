@@ -1,19 +1,5 @@
 import { sql } from 'drizzle-orm';
 
-/**
- * SQL TRIGGERS e FUNCTIONS per PostgreSQL
- * 
- * Drizzle non supporta trigger direttamente nello schema,
- * quindi usiamo SQL raw che verrà eseguito durante le migrations
- */
-
-// ============================================
-// TRIGGER: Auto-update updated_at
-// ============================================
-
-/**
- * Funzione che aggiorna automaticamente updated_at quando una row cambia
- */
 export const updateUpdatedAtFunction = sql`
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -24,9 +10,6 @@ END;
 $$ language 'plpgsql';
 `;
 
-/**
- * Applica trigger a tutte le tabelle con updated_at
- */
 export const applyUpdateTriggers = [
   sql`
   CREATE TRIGGER update_accounts_updated_at
@@ -49,17 +32,6 @@ export const applyUpdateTriggers = [
   EXECUTE FUNCTION update_updated_at_column();
   `
 ];
-
-// ============================================
-// TRIGGER: Update Account Balance
-// ============================================
-
-/**
- * Aggiorna automaticamente il saldo dell'account quando:
- * - Viene inserita una transazione
- * - Viene modificata una transazione
- * - Viene cancellata una transazione
- */
 
 export const updateAccountBalanceFunction = sql`
 CREATE OR REPLACE FUNCTION update_account_balance()
@@ -136,13 +108,6 @@ FOR EACH ROW
 EXECUTE FUNCTION update_account_balance();
 `;
 
-// ============================================
-// TRIGGER: Prevent Invalid Transfers
-// ============================================
-
-/**
- * Previene trasferimenti tra stesso account
- */
 export const preventSameAccountTransferFunction = sql`
 CREATE OR REPLACE FUNCTION prevent_same_account_transfer()
 RETURNS TRIGGER AS $$
@@ -162,13 +127,6 @@ FOR EACH ROW
 EXECUTE FUNCTION prevent_same_account_transfer();
 `;
 
-// ============================================
-// TRIGGER: Log Changes (Audit Trail)
-// ============================================
-
-/**
- * Tabella per audit log (opzionale ma professionale)
- */
 export const createAuditLogTable = sql`
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -224,13 +182,6 @@ export const applyAuditTriggers = [
   `
 ];
 
-// ============================================
-// VIEWS - Viste Materializzate
-// ============================================
-
-/**
- * Vista per statistiche account
- */
 export const createAccountStatsView = sql`
 CREATE MATERIALIZED VIEW IF NOT EXISTS account_stats AS
 SELECT 
@@ -250,9 +201,6 @@ GROUP BY a.id, a.name, a.type, a.balance;
 CREATE UNIQUE INDEX account_stats_account_id_idx ON account_stats(account_id);
 `;
 
-/**
- * Vista per spese per categoria
- */
 export const createCategoryStatsView = sql`
 CREATE MATERIALIZED VIEW IF NOT EXISTS category_stats AS
 SELECT 
@@ -272,13 +220,6 @@ GROUP BY c.id, c.name;
 CREATE UNIQUE INDEX category_stats_category_id_idx ON category_stats(category_id);
 `;
 
-// ============================================
-// FUNCTIONS - Funzioni Custom
-// ============================================
-
-/**
- * Funzione per calcolare saldo tra due date
- */
 export const getBalanceBetweenDatesFunction = sql`
 CREATE OR REPLACE FUNCTION get_balance_between_dates(
     p_account_id UUID,
@@ -309,9 +250,6 @@ END;
 $$ LANGUAGE plpgsql;
 `;
 
-/**
- * Funzione per ottenere top categorie di spesa
- */
 export const getTopCategoriesFunction = sql`
 CREATE OR REPLACE FUNCTION get_top_categories(
     p_limit INTEGER DEFAULT 5,
@@ -342,24 +280,14 @@ END;
 $$ LANGUAGE plpgsql;
 `;
 
-// ============================================
-// TRIGGER: Validate Transaction Currency
-// ============================================
-
-/**
- *
- * Assicura che la valuta della transazione corrisponda a quella dell'account
- * */
 export const checkCurrencyFunction = sql`
 CREATE OR REPLACE FUNCTION check_transaction_currency()
 RETURNS TRIGGER AS $$
 DECLARE
     account_currency VARCHAR(3);
 BEGIN
-    -- 1. Trova la valuta del conto
     SELECT currency INTO account_currency FROM accounts WHERE id = NEW.account_id;
     
-    -- 2. Confronta
     IF NEW.currency != account_currency THEN
         RAISE EXCEPTION 'Currency mismatch: Transaction is in %, but Account is in %', NEW.currency, account_currency;
     END IF;
@@ -375,10 +303,6 @@ BEFORE INSERT OR UPDATE ON transactions
 FOR EACH ROW
 EXECUTE FUNCTION check_transaction_currency();
 `;
-
-// ============================================
-// EXPORT per Migration
-// ============================================
 
 export const allTriggers = {
   updateUpdatedAt: [updateUpdatedAtFunction, ...applyUpdateTriggers],

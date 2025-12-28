@@ -27,11 +27,8 @@ export function formatDateTime(date: Date | string): string {
 }
 
 export function parseCurrency(value: string): number {
-  // Remove currency symbols and spaces
   const cleaned = value.replace(/[€$£¥\s]/g, '');
-  // Replace comma with dot for decimal
   const normalized = cleaned.replace(',', '.');
-  // Parse and convert to cents
   const amount = parseFloat(normalized);
   return Math.round(amount * 100);
 }

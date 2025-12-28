@@ -13,12 +13,10 @@ function App() {
     return (saved as Theme) || 'system';
   });
 
-  // useLayoutEffect viene eseguito PRIMA del paint, quindi non vediamo il flash
   useLayoutEffect(() => {
     const root = window.document.documentElement;
     
     const applyTheme = (isDark: boolean) => {
-      // Rimuovi sempre la classe dark prima di decidere se aggiungerla
       root.classList.remove('dark');
       
       if (isDark) {
@@ -37,7 +35,6 @@ function App() {
       applyTheme(theme === 'dark');
     }
     
-    // Save theme to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
 
