@@ -16,6 +16,8 @@ export const db = drizzle(queryClient, {
   logger: process.env.NODE_ENV === 'development'
 });
 
+export { schema };
+
 export async function closeDatabase() {
   await queryClient.end();
 }

@@ -6,6 +6,10 @@ import {
   SimpleBarChart, 
   SimplePieChart 
 } from './InteractiveComponents';
+import { ExportButton } from './ExportButton';
+import { BudgetManager } from './BudgetManager';
+import { AdvancedCharts } from './AdvancedCharts';
+import { AdvancedSearch } from './AdvancedSearch';
 import { API_URL } from '../config';
 
 interface DashboardStats {
@@ -29,6 +33,7 @@ interface AccountSummary {
 
 export function Dashboard() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'budgets' | 'analytics' | 'search'>('overview');
   const [stats, setStats] = useState<DashboardStats>({
     totalBalance: 0,
     monthlyIncome: 0,
@@ -110,15 +115,66 @@ export function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Panoramica delle tue finanze</p>
+      {/* Header with Export */}
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Panoramica delle tue finanze</p>
+        </div>
+        <ExportButton />
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-        {/* Total Balance */}
+      {/* Navigation Tabs */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="flex gap-4">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'overview'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            📊 Panoramica
+          </button>
+          <button
+            onClick={() => setActiveTab('budgets')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'budgets'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            💰 Budget
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'analytics'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            📈 Analytics
+          </button>
+          <button
+            onClick={() => setActiveTab('search')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'search'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            🔍 Ricerca
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">{/* Total Balance */}
         <InteractiveStatCard
           title="Saldo Totale"
           value={formatCurrency(stats.totalBalance)}
@@ -446,6 +502,12 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+        </>
+      )}
+
+      {activeTab === 'budgets' && <BudgetManager />}
+      {activeTab === 'analytics' && <AdvancedCharts />}
+      {activeTab === 'search' && <AdvancedSearch />}
     </div>
   );
 }

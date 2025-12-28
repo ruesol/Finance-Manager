@@ -10,7 +10,44 @@ A modern, extensible, and highly maintainable finance tracking application desig
 [![React](https://img.shields.io/badge/React-19-blue.svg)](https://reactjs.org/)
 
 ---
+## ✨ Key Features
 
+### 📊 Core Functionality
+- **Multi-account management**: Checking, savings, credit cards, investments
+- **Transaction tracking**: Income, expenses, and transfers with detailed metadata
+- **Category organization**: Hierarchical categories with icons and colors
+- **Multi-currency support**: Handle multiple currencies with proper conversion
+
+### 💰 Budget Management ⭐ NEW
+- Set monthly, quarterly, or yearly budgets per category
+- Real-time spending tracking with visual progress indicators
+- Over-budget warnings with color-coded alerts
+- Budget history and trends
+
+### 📈 Advanced Analytics ⭐ NEW
+- **Monthly trends**: Income vs expenses over configurable periods
+- **Category insights**: Top spending categories with percentages
+- **Year-over-year comparison**: Track financial growth patterns
+- **Custom date ranges**: Analyze any time period
+
+### 🔍 Advanced Search ⭐ NEW
+- Filter by date range, amount, category, account
+- Search in descriptions, notes, and merchant names
+- Sort by date or amount
+- Export filtered results
+
+### 📤 Data Export ⭐ NEW
+- **CSV export**: For Excel and spreadsheet analysis
+- **JSON export**: For backups and programmatic access
+- One-click download with proper formatting
+
+### 🔐 Security & Authentication
+- Clerk authentication with JWT verification
+- Multi-tenancy with complete user isolation
+- Row-level security at database level
+- Secure API endpoints
+
+---
 ## 🎯 Project Vision
 
 **Finance Manager** aims to be the best open-source solution for personal and business money accounting by:

@@ -35,6 +35,12 @@ export const transactionStatusEnum = pgEnum('transaction_status', [
   'CANCELLED'
 ]);
 
+export const budgetPeriodEnum = pgEnum('budget_period', [
+  'MONTHLY',
+  'QUARTERLY',
+  'YEARLY'
+]);
+
 export const accounts = pgTable(
   'accounts',
   {
@@ -201,6 +207,40 @@ export const transactionTags = pgTable(
   })
 );
 
+export const budgets = pgTable(
+  'budgets',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
+    categoryId: uuid('category_id')
+      .notNull()
+      .references(() => categories.id, {
+        onDelete: 'cascade'
+      }),
+    amount: integer('amount').notNull(),
+    period: budgetPeriodEnum('period').notNull().default('MONTHLY'),
+    startDate: timestamp('start_date', { withTimezone: true }).notNull(),
+    endDate: timestamp('end_date', { withTimezone: true }),
+    
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+  },
+  (table) => ({
+    userIdIdx: index('budgets_user_id_idx').on(table.userId),
+    categoryIdx: index('budgets_category_idx').on(table.categoryId),
+    periodIdx: index('budgets_period_idx').on(table.period),
+    startDateIdx: index('budgets_start_date_idx').on(table.startDate),
+    userCategoryPeriodUnique: uniqueIndex('budgets_user_category_period_unique')
+      .on(table.userId, table.categoryId, table.period, table.startDate),
+    amountCheck: check('budget_amount_check', sql`${table.amount} > 0`)
+  })
+);
+
 export const accountsRelations = relations(accounts, ({ many }) => ({
   transactions: many(transactions),
   transfersTo: many(transactions, {
@@ -217,7 +257,8 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
   children: many(categories, {
     relationName: 'parent'
   }),
-  transactions: many(transactions)
+  transactions: many(transactions),
+  budgets: many(budgets)
 }));
 
 export const transactionsRelations = relations(transactions, ({ one, many }) => ({
@@ -252,6 +293,13 @@ export const transactionTagsRelations = relations(transactionTags, ({ one }) => 
   })
 }));
 
+export const budgetsRelations = relations(budgets, ({ one }) => ({
+  category: one(categories, {
+    fields: [budgets.categoryId],
+    references: [categories.id]
+  })
+}));
+
 export type Account = typeof accounts.$inferSelect;
 export type NewAccount = typeof accounts.$inferInsert;
 
@@ -266,3 +314,6 @@ export type NewTransaction = typeof transactions.$inferInsert;
 
 export type TransactionTag = typeof transactionTags.$inferSelect;
 export type NewTransactionTag = typeof transactionTags.$inferInsert;
+
+export type Budget = typeof budgets.$inferSelect;
+export type NewBudget = typeof budgets.$inferInsert;

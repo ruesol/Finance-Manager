@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { clerkClient, verifyToken } from '@clerk/backend';
-import { db } from '../src/db/index';
-import { accounts, transactions, categories, tags } from '../src/db/schema';
-import { eq, isNull, gte, desc, sql, and } from 'drizzle-orm';
+import { db, schema } from '../src/db/index';
+import { accounts, transactions, categories, tags, budgets } from '../src/db/schema';
+import { eq, isNull, gte, desc, sql, and, lte, between, or, like, asc } from 'drizzle-orm';
 
 const app = express();
 const PORT = 3001;
@@ -17,32 +17,20 @@ const authenticateClerk = async (req: any, res: any, next: any) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ No authorization header or invalid format');
       return res.status(401).json({ error: 'Unauthorized - Missing token' });
     }
 
     const token = authHeader.substring(7);
     
-    // Debug: Check environment variables
-    const hasSecretKey = !!process.env.CLERK_SECRET_KEY;
-    const hasJwtKey = !!process.env.CLERK_JWT_KEY;
-    console.log(`🔑 Auth attempt - SecretKey: ${hasSecretKey}, JwtKey: ${hasJwtKey}`);
-    
-    // Configure verification options
     const verifyOptions: any = {
       secretKey: process.env.CLERK_SECRET_KEY!
     };
     
-    // Add jwtKey if available (for JWK resolution)
     if (process.env.CLERK_JWT_KEY) {
       verifyOptions.jwtKey = process.env.CLERK_JWT_KEY;
     }
     
-    console.log('🔐 Verifying token...');
-    console.log('📝 Token preview:', token.substring(0, 50) + '...');
-    console.log('🔑 Using secretKey:', process.env.CLERK_SECRET_KEY?.substring(0, 15) + '...');
     const verified = await verifyToken(token, verifyOptions);
-    console.log('✅ Token verified successfully, userId:', verified.sub);
 
     if (!verified || !verified.sub) {
       return res.status(401).json({ error: 'Unauthorized - Invalid token' });
@@ -51,7 +39,7 @@ const authenticateClerk = async (req: any, res: any, next: any) => {
     req.userId = verified.sub;
     next();
   } catch (error) {
-    console.error('❌ Auth error:', error);
+    console.error('Authentication error:', error);
     return res.status(401).json({ error: 'Unauthorized' });
   }
 };
@@ -409,6 +397,455 @@ app.get('/api/dashboard/stats', authenticateClerk, async (req: any, res) => {
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+  }
+});
+
+// ============================================
+// EXPORT ENDPOINTS
+// ============================================
+
+// Export transactions as CSV
+app.get('/api/export/transactions/csv', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    
+    const result = await db
+      .select({
+        date: transactions.date,
+        description: transactions.description,
+        amount: transactions.amount,
+        type: transactions.type,
+        category: categories.name,
+        account: accounts.name,
+        status: transactions.status,
+        notes: transactions.notes,
+        merchantName: transactions.merchantName
+      })
+      .from(transactions)
+      .leftJoin(categories, eq(transactions.categoryId, categories.id))
+      .leftJoin(accounts, eq(transactions.accountId, accounts.id))
+      .where(and(
+        eq(transactions.userId, userId),
+        isNull(transactions.deletedAt)
+      ))
+      .orderBy(desc(transactions.date));
+    
+    // Build CSV
+    const headers = ['Data', 'Descrizione', 'Importo', 'Tipo', 'Categoria', 'Conto', 'Stato', 'Note', 'Commerciante'];
+    const csvRows = [headers.join(',')];
+    
+    for (const row of result) {
+      const values = [
+        row.date?.toISOString().split('T')[0] || '',
+        `"${row.description?.replace(/"/g, '""') || ''}"`,
+        (row.amount / 100).toFixed(2),
+        row.type,
+        `"${row.category || ''}"`,
+        `"${row.account || ''}"`,
+        row.status,
+        `"${row.notes?.replace(/"/g, '""') || ''}"`,
+        `"${row.merchantName?.replace(/"/g, '""') || ''}"`
+      ];
+      csvRows.push(values.join(','));
+    }
+    
+    const csv = csvRows.join('\n');
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=transactions.csv');
+    res.send(csv);
+  } catch (error) {
+    console.error('Error exporting CSV:', error);
+    res.status(500).json({ error: 'Failed to export transactions' });
+  }
+});
+
+// Export transactions as JSON
+app.get('/api/export/transactions/json', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    
+    const result = await db
+      .select()
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        isNull(transactions.deletedAt)
+      ))
+      .orderBy(desc(transactions.date));
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename=transactions.json');
+    res.json({
+      exportDate: new Date().toISOString(),
+      totalTransactions: result.length,
+      transactions: result
+    });
+  } catch (error) {
+    console.error('Error exporting JSON:', error);
+    res.status(500).json({ error: 'Failed to export transactions' });
+  }
+});
+
+// ============================================
+// BUDGETS ENDPOINTS
+// ============================================
+
+// GET all budgets
+app.get('/api/budgets', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    
+    const result = await db
+      .select({
+        budget: budgets,
+        category: categories
+      })
+      .from(budgets)
+      .leftJoin(categories, eq(budgets.categoryId, categories.id))
+      .where(eq(budgets.userId, userId))
+      .orderBy(budgets.startDate);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching budgets:', error);
+    res.status(500).json({ error: 'Failed to fetch budgets' });
+  }
+});
+
+// GET budget spending for current period
+app.get('/api/budgets/:id/spending', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const budgetId = req.params.id;
+    
+    const budget = await db
+      .select()
+      .from(budgets)
+      .where(and(
+        eq(budgets.id, budgetId),
+        eq(budgets.userId, userId)
+      ))
+      .limit(1);
+    
+    if (budget.length === 0) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+    
+    const b = budget[0];
+    const endDate = b.endDate || new Date();
+    
+    // Calculate total spending for this category in the period
+    const spending = await db
+      .select({
+        total: sql<number>`COALESCE(SUM(${transactions.amount}), 0)`
+      })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.categoryId, b.categoryId),
+        eq(transactions.type, 'EXPENSE'),
+        gte(transactions.date, b.startDate),
+        lte(transactions.date, endDate),
+        isNull(transactions.deletedAt)
+      ));
+    
+    const spent = Math.abs(spending[0]?.total || 0);
+    const remaining = Math.max(0, b.amount - spent);
+    const percentage = b.amount > 0 ? (spent / b.amount) * 100 : 0;
+    
+    res.json({
+      budgetId: b.id,
+      amount: b.amount,
+      spent,
+      remaining,
+      percentage: Math.round(percentage * 10) / 10,
+      isOverBudget: spent > b.amount
+    });
+  } catch (error) {
+    console.error('Error fetching budget spending:', error);
+    res.status(500).json({ error: 'Failed to fetch budget spending' });
+  }
+});
+
+// CREATE budget
+app.post('/api/budgets', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { categoryId, amount, period, startDate, endDate } = req.body;
+    
+    if (!categoryId || !amount || !period || !startDate) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const result = await db
+      .insert(budgets)
+      .values({
+        userId,
+        categoryId,
+        amount,
+        period,
+        startDate: new Date(startDate),
+        endDate: endDate ? new Date(endDate) : null
+      })
+      .returning();
+    
+    res.status(201).json(result[0]);
+  } catch (error) {
+    console.error('Error creating budget:', error);
+    res.status(500).json({ error: 'Failed to create budget' });
+  }
+});
+
+// UPDATE budget
+app.put('/api/budgets/:id', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const budgetId = req.params.id;
+    const { amount, period, startDate, endDate } = req.body;
+    
+    const updateData: any = { updatedAt: new Date() };
+    if (amount !== undefined) updateData.amount = amount;
+    if (period !== undefined) updateData.period = period;
+    if (startDate !== undefined) updateData.startDate = new Date(startDate);
+    if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
+    
+    const result = await db
+      .update(budgets)
+      .set(updateData)
+      .where(and(
+        eq(budgets.id, budgetId),
+        eq(budgets.userId, userId)
+      ))
+      .returning();
+    
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+    
+    res.json(result[0]);
+  } catch (error) {
+    console.error('Error updating budget:', error);
+    res.status(500).json({ error: 'Failed to update budget' });
+  }
+});
+
+// DELETE budget
+app.delete('/api/budgets/:id', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const budgetId = req.params.id;
+    
+    const result = await db
+      .delete(budgets)
+      .where(and(
+        eq(budgets.id, budgetId),
+        eq(budgets.userId, userId)
+      ))
+      .returning();
+    
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Budget not found' });
+    }
+    
+    res.json({ message: 'Budget deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting budget:', error);
+    res.status(500).json({ error: 'Failed to delete budget' });
+  }
+});
+
+// ============================================
+// ADVANCED SEARCH ENDPOINT
+// ============================================
+
+// Advanced transaction search with filters
+app.get('/api/transactions/search', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const {
+      startDate,
+      endDate,
+      minAmount,
+      maxAmount,
+      categoryId,
+      accountId,
+      type,
+      status,
+      searchText,
+      sortBy = 'date',
+      sortOrder = 'desc'
+    } = req.query;
+    
+    const conditions = [
+      eq(transactions.userId, userId),
+      isNull(transactions.deletedAt)
+    ];
+    
+    if (startDate) {
+      conditions.push(gte(transactions.date, new Date(startDate as string)));
+    }
+    if (endDate) {
+      conditions.push(lte(transactions.date, new Date(endDate as string)));
+    }
+    if (minAmount) {
+      conditions.push(gte(transactions.amount, Math.abs(parseInt(minAmount as string))));
+    }
+    if (maxAmount) {
+      conditions.push(lte(transactions.amount, Math.abs(parseInt(maxAmount as string))));
+    }
+    if (categoryId) {
+      conditions.push(eq(transactions.categoryId, categoryId as string));
+    }
+    if (accountId) {
+      conditions.push(eq(transactions.accountId, accountId as string));
+    }
+    if (type) {
+      conditions.push(eq(transactions.type, type as any));
+    }
+    if (status) {
+      conditions.push(eq(transactions.status, status as any));
+    }
+    if (searchText) {
+      const search = `%${searchText}%`;
+      conditions.push(
+        or(
+          like(transactions.description, search),
+          like(transactions.notes, search),
+          like(transactions.merchantName, search)
+        )!
+      );
+    }
+    
+    const orderColumn = sortBy === 'amount' ? transactions.amount : transactions.date;
+    const orderFn = sortOrder === 'asc' ? asc : desc;
+    
+    const result = await db
+      .select({
+        transaction: transactions,
+        category: categories,
+        account: accounts
+      })
+      .from(transactions)
+      .leftJoin(categories, eq(transactions.categoryId, categories.id))
+      .leftJoin(accounts, eq(transactions.accountId, accounts.id))
+      .where(and(...conditions))
+      .orderBy(orderFn(orderColumn));
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error searching transactions:', error);
+    res.status(500).json({ error: 'Failed to search transactions' });
+  }
+});
+
+// ============================================
+// ANALYTICS ENDPOINTS
+// ============================================
+
+// Monthly trends
+app.get('/api/analytics/trends/monthly', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { months = 12 } = req.query;
+    
+    const monthsAgo = new Date();
+    monthsAgo.setMonth(monthsAgo.getMonth() - parseInt(months as string));
+    
+    const result = await db
+      .select({
+        month: sql<string>`TO_CHAR(${transactions.date}, 'YYYY-MM')`,
+        type: transactions.type,
+        total: sql<number>`SUM(${transactions.amount})`
+      })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        gte(transactions.date, monthsAgo),
+        isNull(transactions.deletedAt)
+      ))
+      .groupBy(sql`TO_CHAR(${transactions.date}, 'YYYY-MM')`, transactions.type)
+      .orderBy(sql`TO_CHAR(${transactions.date}, 'YYYY-MM')`);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching monthly trends:', error);
+    res.status(500).json({ error: 'Failed to fetch trends' });
+  }
+});
+
+// Category spending by period
+app.get('/api/analytics/categories/spending', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { startDate, endDate } = req.query;
+    
+    const conditions = [
+      eq(transactions.userId, userId),
+      eq(transactions.type, 'EXPENSE'),
+      isNull(transactions.deletedAt)
+    ];
+    
+    if (startDate) {
+      conditions.push(gte(transactions.date, new Date(startDate as string)));
+    }
+    if (endDate) {
+      conditions.push(lte(transactions.date, new Date(endDate as string)));
+    }
+    
+    const result = await db
+      .select({
+        categoryId: categories.id,
+        categoryName: categories.name,
+        categoryIcon: categories.icon,
+        categoryColor: categories.color,
+        total: sql<number>`SUM(ABS(${transactions.amount}))`,
+        count: sql<number>`COUNT(${transactions.id})`
+      })
+      .from(transactions)
+      .leftJoin(categories, eq(transactions.categoryId, categories.id))
+      .where(and(...conditions))
+      .groupBy(categories.id, categories.name, categories.icon, categories.color)
+      .orderBy(desc(sql`SUM(ABS(${transactions.amount}))`));
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching category spending:', error);
+    res.status(500).json({ error: 'Failed to fetch category spending' });
+  }
+});
+
+// Year-over-year comparison
+app.get('/api/analytics/year-comparison', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    
+    const result = await db
+      .select({
+        year: sql<string>`EXTRACT(YEAR FROM ${transactions.date})`,
+        month: sql<string>`EXTRACT(MONTH FROM ${transactions.date})`,
+        type: transactions.type,
+        total: sql<number>`SUM(${transactions.amount})`
+      })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        isNull(transactions.deletedAt)
+      ))
+      .groupBy(
+        sql`EXTRACT(YEAR FROM ${transactions.date})`,
+        sql`EXTRACT(MONTH FROM ${transactions.date})`,
+        transactions.type
+      )
+      .orderBy(
+        sql`EXTRACT(YEAR FROM ${transactions.date})`,
+        sql`EXTRACT(MONTH FROM ${transactions.date})`
+      );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching year comparison:', error);
+    res.status(500).json({ error: 'Failed to fetch comparison data' });
   }
 });
 
