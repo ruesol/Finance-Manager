@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { TransactionRepository } from "../Ports/TransactionRepository";
-import { InMemoryTransactionRepository } from "../Adapters/InMemoryTransactionRepository";
+import { HttpTransactionRepository } from "../Adapters/HttpTransactionRepository";
 
 interface ServiceContainer {
     transactionRepo: TransactionRepository;
@@ -8,7 +8,7 @@ interface ServiceContainer {
 
 const ServiceContext = createContext<ServiceContainer | null>(null);
 
-const transactionRepo = new InMemoryTransactionRepository();
+const transactionRepo = new HttpTransactionRepository();
 
 export const ServiceProvider = ({ children }: { children: ReactNode }) => {
     return (
