@@ -47,6 +47,18 @@ A modern, extensible, and highly maintainable finance tracking application desig
 - Row-level security at database level
 - Secure API endpoints
 
+### 🏷️ Category Management ⭐ NEW
+- **Create & customize**: Icons, colors, names
+- **Edit & delete**: Full CRUD operations
+- **Drag & drop**: Reorder categories visually
+- **Smart deletion**: Prevents deleting categories with transactions
+
+### 💱 Multi-Currency ⭐ NEW
+- **Real-time rates**: 10+ major currencies
+- **Currency converter**: Instant conversions
+- **Exchange rate table**: View all rates at once
+- **Travel-friendly**: Perfect for international transactions
+
 ---
 ## 🎯 Project Vision
 

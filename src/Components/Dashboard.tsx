@@ -10,6 +10,8 @@ import { ExportButton } from './ExportButton';
 import { BudgetManager } from './BudgetManager';
 import { AdvancedCharts } from './AdvancedCharts';
 import { AdvancedSearch } from './AdvancedSearch';
+import { CategoryManager } from './CategoryManager';
+import { CurrencyConverter } from './CurrencyConverter';
 import { API_URL } from '../config';
 
 interface DashboardStats {
@@ -33,7 +35,7 @@ interface AccountSummary {
 
 export function Dashboard() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'budgets' | 'analytics' | 'search'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'budgets' | 'analytics' | 'search' | 'categories' | 'currency'>('overview');
   const [stats, setStats] = useState<DashboardStats>({
     totalBalance: 0,
     monthlyIncome: 0,
@@ -166,6 +168,26 @@ export function Dashboard() {
             }`}
           >
             🔍 Ricerca
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'categories'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            🏷️ Categorie
+          </button>
+          <button
+            onClick={() => setActiveTab('currency')}
+            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+              activeTab === 'currency'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            💱 Valute
           </button>
         </nav>
       </div>
@@ -508,6 +530,8 @@ export function Dashboard() {
       {activeTab === 'budgets' && <BudgetManager />}
       {activeTab === 'analytics' && <AdvancedCharts />}
       {activeTab === 'search' && <AdvancedSearch />}
+      {activeTab === 'categories' && <CategoryManager />}
+      {activeTab === 'currency' && <CurrencyConverter />}
     </div>
   );
 }

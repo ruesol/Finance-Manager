@@ -5,6 +5,7 @@ import { clerkClient, verifyToken } from '@clerk/backend';
 import { db, schema } from '../src/db/index';
 import { accounts, transactions, categories, tags, budgets } from '../src/db/schema';
 import { eq, isNull, gte, desc, sql, and, lte, between, or, like, asc } from 'drizzle-orm';
+import logger from './logger';
 
 const app = express();
 const PORT = 3001;
@@ -17,6 +18,7 @@ const authenticateClerk = async (req: any, res: any, next: any) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      logger.warn({ path: req.path }, 'Unauthorized request - Missing token');
       return res.status(401).json({ error: 'Unauthorized - Missing token' });
     }
 
@@ -33,13 +35,15 @@ const authenticateClerk = async (req: any, res: any, next: any) => {
     const verified = await verifyToken(token, verifyOptions);
 
     if (!verified || !verified.sub) {
+      logger.warn({ path: req.path }, 'Unauthorized request - Invalid token');
       return res.status(401).json({ error: 'Unauthorized - Invalid token' });
     }
 
     req.userId = verified.sub;
+    logger.debug({ userId: req.userId, path: req.path }, 'User authenticated');
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
+    logger.error({ error, path: req.path }, 'Authentication error');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 };
@@ -70,7 +74,7 @@ async function ensureUserHasCategories(userId: string) {
     .limit(1);
 
   if (existingCategories.length === 0) {
-    console.log(`🎯 Onboarding user ${userId}: Creating default categories`);
+    logger.info({ userId }, 'Onboarding user: Creating default categories');
     await db.insert(categories).values(
       DEFAULT_CATEGORIES.map(cat => ({ ...cat, userId }))
     );
@@ -95,7 +99,7 @@ app.get('/api/accounts', authenticateClerk, async (req: any, res) => {
       ));
     res.json(result);
   } catch (error) {
-    console.error('Error fetching accounts:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching accounts');
     res.status(500).json({ error: 'Failed to fetch accounts' });
   }
 });
@@ -114,7 +118,7 @@ app.post('/api/accounts', authenticateClerk, async (req: any, res) => {
     }).returning();
     res.json(result[0]);
   } catch (error) {
-    console.error('Error creating account:', error);
+    logger.error({ error, userId: req.userId }, 'Error creating account');
     res.status(500).json({ error: 'Failed to create account' });
   }
 });
@@ -138,7 +142,7 @@ app.put('/api/accounts/:id', authenticateClerk, async (req: any, res) => {
       .returning();
     res.json(result[0]);
   } catch (error) {
-    console.error('Error updating account:', error);
+    logger.error({ error, userId: req.userId, accountId: req.params.id }, 'Error updating account');
     res.status(500).json({ error: 'Failed to update account' });
   }
 });
@@ -161,7 +165,7 @@ app.delete('/api/accounts/:id', authenticateClerk, async (req: any, res) => {
       ));
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting account:', error);
+    logger.error({ error, userId: req.userId, accountId: req.params.id }, 'Error deleting account');
     res.status(500).json({ error: 'Failed to delete account' });
   }
 });
@@ -225,7 +229,7 @@ app.get('/api/transactions', authenticateClerk, async (req: any, res) => {
 
     res.json(txsWithToAccount);
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching transactions');
     res.status(500).json({ error: 'Failed to fetch transactions' });
   }
 });
@@ -261,7 +265,7 @@ app.post('/api/transactions', authenticateClerk, async (req: any, res) => {
     const result = await db.insert(transactions).values(data).returning();
     res.json(result[0]);
   } catch (error) {
-    console.error('Error creating transaction:', error);
+    logger.error({ error, userId: req.userId }, 'Error creating transaction');
     res.status(500).json({ error: 'Failed to create transaction' });
   }
 });
@@ -296,7 +300,7 @@ app.delete('/api/transactions/:id', authenticateClerk, async (req: any, res) => 
       .where(eq(transactions.id, id));
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting transaction:', error);
+    logger.error({ error, userId: req.userId, transactionId: req.params.id }, 'Error deleting transaction');
     res.status(500).json({ error: 'Failed to delete transaction' });
   }
 });
@@ -322,8 +326,210 @@ app.get('/api/categories', authenticateClerk, async (req: any, res) => {
       .where(eq(categories.userId, userId));
     res.json(result);
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching categories');
     res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+// POST create category
+app.post('/api/categories', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { name, parentId, icon, color, sortOrder } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+    
+    const result = await db
+      .insert(categories)
+      .values({
+        userId,
+        name,
+        parentId: parentId || null,
+        icon: icon || null,
+        color: color || null,
+        sortOrder: sortOrder || 0
+      })
+      .returning();
+    
+    res.status(201).json(result[0]);
+  } catch (error) {
+    logger.error({ error, userId: req.userId }, 'Error creating category');
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+});
+
+// PUT update category
+app.put('/api/categories/:id', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const categoryId = req.params.id;
+    const { name, parentId, icon, color, sortOrder } = req.body;
+    
+    const updateData: any = { updatedAt: new Date() };
+    if (name !== undefined) updateData.name = name;
+    if (parentId !== undefined) updateData.parentId = parentId || null;
+    if (icon !== undefined) updateData.icon = icon || null;
+    if (color !== undefined) updateData.color = color || null;
+    if (sortOrder !== undefined) updateData.sortOrder = sortOrder;
+    
+    const result = await db
+      .update(categories)
+      .set(updateData)
+      .where(and(
+        eq(categories.id, categoryId),
+        eq(categories.userId, userId)
+      ))
+      .returning();
+    
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    
+    res.json(result[0]);
+  } catch (error) {
+    logger.error({ error, userId: req.userId, categoryId: req.params.id }, 'Error updating category');
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+// DELETE category
+app.delete('/api/categories/:id', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const categoryId = req.params.id;
+    
+    // Check if category has transactions
+    const txCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(transactions)
+      .where(eq(transactions.categoryId, categoryId));
+    
+    if (txCount[0].count > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot delete category with transactions',
+        transactionCount: txCount[0].count
+      });
+    }
+    
+    const result = await db
+      .delete(categories)
+      .where(and(
+        eq(categories.id, categoryId),
+        eq(categories.userId, userId)
+      ))
+      .returning();
+    
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    
+    res.json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    logger.error({ error, userId: req.userId, categoryId: req.params.id }, 'Error deleting category');
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
+// PATCH reorder categories
+app.patch('/api/categories/reorder', authenticateClerk, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { categories: categoryOrders } = req.body;
+    
+    if (!Array.isArray(categoryOrders)) {
+      return res.status(400).json({ error: 'Invalid request format' });
+    }
+    
+    // Update all categories in a transaction
+    const updates = await Promise.all(
+      categoryOrders.map(({ id, sortOrder }: { id: string; sortOrder: number }) =>
+        db
+          .update(categories)
+          .set({ sortOrder, updatedAt: new Date() })
+          .where(and(
+            eq(categories.id, id),
+            eq(categories.userId, userId)
+          ))
+          .returning()
+      )
+    );
+    
+    res.json({ message: 'Categories reordered successfully', updated: updates.length });
+  } catch (error) {
+    logger.error({ error, userId: req.userId }, 'Error reordering categories');
+    res.status(500).json({ error: 'Failed to reorder categories' });
+  }
+});
+
+// ============================================
+// CURRENCY CONVERSION ENDPOINT
+// ============================================
+
+// GET exchange rates
+app.get('/api/currency/rates', authenticateClerk, async (req: any, res) => {
+  try {
+    const { base = 'EUR' } = req.query;
+    
+    // Using exchangerate-api.com free tier (no API key needed for basic usage)
+    const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch exchange rates');
+    }
+    
+    const data = await response.json();
+    
+    res.json({
+      base: data.base,
+      date: data.date,
+      rates: data.rates
+    });
+  } catch (error) {
+    logger.error({ error, userId: req.userId }, 'Error fetching exchange rates');
+    res.status(500).json({ error: 'Failed to fetch exchange rates' });
+  }
+});
+
+// POST convert currency
+app.post('/api/currency/convert', authenticateClerk, async (req: any, res) => {
+  try {
+    const { amount, from, to } = req.body;
+    
+    if (!amount || !from || !to) {
+      return res.status(400).json({ error: 'Amount, from, and to currencies are required' });
+    }
+    
+    if (from === to) {
+      return res.json({ amount, from, to, converted: amount, rate: 1 });
+    }
+    
+    const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${from}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch exchange rates');
+    }
+    
+    const data = await response.json();
+    const rate = data.rates[to];
+    
+    if (!rate) {
+      return res.status(400).json({ error: `Exchange rate not found for ${to}` });
+    }
+    
+    const converted = Math.round(amount * rate);
+    
+    res.json({
+      amount,
+      from,
+      to,
+      converted,
+      rate
+    });
+  } catch (error) {
+    logger.error({ error, amount, from, to }, 'Error converting currency');
+    res.status(500).json({ error: 'Failed to convert currency' });
   }
 });
 
@@ -395,7 +601,7 @@ app.get('/api/dashboard/stats', authenticateClerk, async (req: any, res) => {
       accounts: allAccounts
     });
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching dashboard stats');
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });
   }
 });
@@ -455,7 +661,7 @@ app.get('/api/export/transactions/csv', authenticateClerk, async (req: any, res)
     res.setHeader('Content-Disposition', 'attachment; filename=transactions.csv');
     res.send(csv);
   } catch (error) {
-    console.error('Error exporting CSV:', error);
+    logger.error({ error, userId: req.userId }, 'Error exporting CSV');
     res.status(500).json({ error: 'Failed to export transactions' });
   }
 });
@@ -482,7 +688,7 @@ app.get('/api/export/transactions/json', authenticateClerk, async (req: any, res
       transactions: result
     });
   } catch (error) {
-    console.error('Error exporting JSON:', error);
+    logger.error({ error, userId: req.userId }, 'Error exporting JSON');
     res.status(500).json({ error: 'Failed to export transactions' });
   }
 });
@@ -508,7 +714,7 @@ app.get('/api/budgets', authenticateClerk, async (req: any, res) => {
     
     res.json(result);
   } catch (error) {
-    console.error('Error fetching budgets:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching budgets');
     res.status(500).json({ error: 'Failed to fetch budgets' });
   }
 });
@@ -563,7 +769,7 @@ app.get('/api/budgets/:id/spending', authenticateClerk, async (req: any, res) =>
       isOverBudget: spent > b.amount
     });
   } catch (error) {
-    console.error('Error fetching budget spending:', error);
+    logger.error({ error, userId: req.userId, budgetId: req.params.id }, 'Error fetching budget spending');
     res.status(500).json({ error: 'Failed to fetch budget spending' });
   }
 });
@@ -592,7 +798,7 @@ app.post('/api/budgets', authenticateClerk, async (req: any, res) => {
     
     res.status(201).json(result[0]);
   } catch (error) {
-    console.error('Error creating budget:', error);
+    logger.error({ error, userId: req.userId }, 'Error creating budget');
     res.status(500).json({ error: 'Failed to create budget' });
   }
 });
@@ -625,7 +831,7 @@ app.put('/api/budgets/:id', authenticateClerk, async (req: any, res) => {
     
     res.json(result[0]);
   } catch (error) {
-    console.error('Error updating budget:', error);
+    logger.error({ error, userId: req.userId, budgetId: req.params.id }, 'Error updating budget');
     res.status(500).json({ error: 'Failed to update budget' });
   }
 });
@@ -650,7 +856,7 @@ app.delete('/api/budgets/:id', authenticateClerk, async (req: any, res) => {
     
     res.json({ message: 'Budget deleted successfully' });
   } catch (error) {
-    console.error('Error deleting budget:', error);
+    logger.error({ error, userId: req.userId, budgetId: req.params.id }, 'Error deleting budget');
     res.status(500).json({ error: 'Failed to delete budget' });
   }
 });
@@ -734,7 +940,7 @@ app.get('/api/transactions/search', authenticateClerk, async (req: any, res) => 
     
     res.json(result);
   } catch (error) {
-    console.error('Error searching transactions:', error);
+    logger.error({ error, userId: req.userId }, 'Error searching transactions');
     res.status(500).json({ error: 'Failed to search transactions' });
   }
 });
@@ -769,7 +975,7 @@ app.get('/api/analytics/trends/monthly', authenticateClerk, async (req: any, res
     
     res.json(result);
   } catch (error) {
-    console.error('Error fetching monthly trends:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching monthly trends');
     res.status(500).json({ error: 'Failed to fetch trends' });
   }
 });
@@ -810,7 +1016,7 @@ app.get('/api/analytics/categories/spending', authenticateClerk, async (req: any
     
     res.json(result);
   } catch (error) {
-    console.error('Error fetching category spending:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching category spending');
     res.status(500).json({ error: 'Failed to fetch category spending' });
   }
 });
@@ -844,15 +1050,15 @@ app.get('/api/analytics/year-comparison', authenticateClerk, async (req: any, re
     
     res.json(result);
   } catch (error) {
-    console.error('Error fetching year comparison:', error);
+    logger.error({ error, userId: req.userId }, 'Error fetching year comparison');
     res.status(500).json({ error: 'Failed to fetch comparison data' });
   }
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 API Server running on http://localhost:${PORT}`);
-  console.log(`📊 Dashboard: http://localhost:${PORT}/api/dashboard/stats`);
-  console.log(`🏦 Accounts: http://localhost:${PORT}/api/accounts`);
-  console.log(`💸 Transactions: http://localhost:${PORT}/api/transactions`);
+  logger.info({ port: PORT }, 'API Server running');
+  logger.info({ port: PORT, endpoint: '/api/dashboard/stats' }, 'Dashboard endpoint available');
+  logger.info({ port: PORT, endpoint: '/api/accounts' }, 'Accounts endpoint available');
+  logger.info({ port: PORT, endpoint: '/api/transactions' }, 'Transactions endpoint available');
 });

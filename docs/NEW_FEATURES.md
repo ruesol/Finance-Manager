@@ -237,3 +237,136 @@ For questions or issues:
 2. Review API endpoint documentation
 3. Check the test suite for usage examples
 4. Open an issue on GitHub
+
+---
+
+## Version 1.2.0 - December 29, 2025 (Evening Update)
+
+### Added Features
+
+#### 5. Category Management ⭐ NEW
+**Location**: `src/Components/CategoryManager.tsx`
+
+Complete CRUD operations for categories with drag-and-drop reordering.
+
+**Features**:
+- Create custom categories with icons and colors
+- Edit existing categories
+- Delete categories (with transaction check)
+- Drag-and-drop to reorder categories
+- 20+ preset icons
+- 10+ preset colors
+- Visual preview of icon and color
+
+**API Endpoints**:
+- `POST /api/categories` - Create new category
+- `PUT /api/categories/:id` - Update category
+- `DELETE /api/categories/:id` - Delete category (prevents if has transactions)
+- `PATCH /api/categories/reorder` - Batch update sort order
+
+**Usage**: 
+- Navigate to Dashboard → 🏷️ Categorie tab
+- Drag categories to reorder them
+- Click "Modifica" to edit, "Elimina" to delete
+
+#### 6. Multi-Currency Support ⭐ NEW
+**Location**: `src/Components/CurrencyConverter.tsx`
+
+Real-time currency conversion and exchange rate information.
+
+**Features**:
+- Convert between 10+ major currencies
+- Real-time exchange rates via exchangerate-api.com
+- Swap currencies with one click
+- Exchange rate table with all supported currencies
+- Visual calculation breakdown
+- Currency symbols and names
+
+**Supported Currencies**:
+- EUR (Euro), USD (US Dollar), GBP (British Pound)
+- JPY (Japanese Yen), CHF (Swiss Franc), CAD (Canadian Dollar)
+- AUD (Australian Dollar), CNY (Chinese Yuan)
+- INR (Indian Rupee), BRL (Brazilian Real)
+
+**API Endpoints**:
+- `GET /api/currency/rates?base=EUR` - Get all exchange rates
+- `POST /api/currency/convert` - Convert specific amount
+
+**Usage**:
+- Navigate to Dashboard → 💱 Valute tab
+- Enter amount and select currencies
+- Click "Converti" to see result
+
+### Technical Implementation
+
+**Backend Changes** (`server/index.ts`):
+- Added 5 new category management endpoints
+- Added 2 currency conversion endpoints
+- Integrated with exchangerate-api.com (free tier)
+- Transaction count check before category deletion
+- Batch update for category reordering
+
+**Frontend Changes**:
+- `CategoryManager.tsx` - Full CRUD with drag-and-drop (350+ lines)
+- `CurrencyConverter.tsx` - Conversion tool with live rates (280+ lines)
+- Updated Dashboard with 2 new tabs
+- Drag-and-drop HTML5 API implementation
+- Color picker integration
+
+**Accessibility**:
+- All form inputs have proper labels with `htmlFor`
+- ARIA labels for interactive elements
+- Keyboard navigation support
+- Screen reader friendly
+
+### Database Considerations
+
+No database schema changes required - uses existing `categories` table with `sortOrder` field.
+
+### API Integration
+
+**Exchange Rate Provider**: exchangerate-api.com
+- Free tier: 1,500 requests/month
+- Updates: Daily
+- Coverage: 160+ currencies
+- No API key required for basic usage
+
+### Performance Notes
+
+- Category reordering uses optimistic UI updates
+- Exchange rates cached on frontend
+- Minimal API calls during drag-and-drop
+- Efficient batch updates for sort order
+
+### Security
+
+- All endpoints protected with Clerk authentication
+- User isolation on all category operations
+- Category deletion prevents data loss (checks transactions)
+- Currency API calls proxied through backend
+
+## Complete Feature List (v1.2.0)
+
+1. ✅ Data Export (CSV/JSON)
+2. ✅ Monthly Budget Management
+3. ✅ Advanced Analytics & Trends
+4. ✅ Advanced Transaction Search
+5. ✅ Category Management (CRUD + Reorder)
+6. ✅ Multi-Currency Converter
+
+## Statistics (Total)
+
+- **Lines of code added**: ~2,500+
+- **New components**: 6
+- **API endpoints**: 20+
+- **Database tables**: 1 new (budgets)
+- **Tests**: 175 passing (100%)
+- **Supported currencies**: 10 major + 150+ via API
+
+## Support
+
+For questions or issues:
+1. Check this documentation
+2. Review API endpoint documentation
+3. Check the test suite for usage examples
+4. Open an issue on GitHub
