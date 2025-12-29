@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import App from './App'
 import { ServiceProvider } from './Context/ServiceContext'
+import { SettingsProvider } from './Context/SettingsContext'
 import './index.css'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -16,9 +17,11 @@ if (!PUBLISHABLE_KEY) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <ServiceProvider>
-        <App />
-      </ServiceProvider>
+      <SettingsProvider>
+        <ServiceProvider>
+          <App />
+        </ServiceProvider>
+      </SettingsProvider>
     </ClerkProvider>
   </React.StrictMode>,
 )
