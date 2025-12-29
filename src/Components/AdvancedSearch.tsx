@@ -141,8 +141,9 @@ export function AdvancedSearch() {
         {/* Date Range */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Data Inizio</label>
+            <label htmlFor="filter-date-start" className="block text-sm font-medium mb-2">Data Inizio</label>
             <input
+              id="filter-date-start"
               type="date"
               value={filters.startDate}
               onChange={(e) => updateFilter('startDate', e.target.value)}
@@ -150,8 +151,9 @@ export function AdvancedSearch() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Data Fine</label>
+            <label htmlFor="filter-date-end" className="block text-sm font-medium mb-2">Data Fine</label>
             <input
+              id="filter-date-end"
               type="date"
               value={filters.endDate}
               onChange={(e) => updateFilter('endDate', e.target.value)}
@@ -163,8 +165,9 @@ export function AdvancedSearch() {
         {/* Amount Range */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Importo Minimo (€)</label>
+            <label htmlFor="filter-min-amount" className="block text-sm font-medium mb-2">Importo Minimo (€)</label>
             <input
+              id="filter-min-amount"
               type="number"
               step="0.01"
               value={filters.minAmount}
@@ -173,8 +176,9 @@ export function AdvancedSearch() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Importo Massimo (€)</label>
+            <label htmlFor="filter-max-amount" className="block text-sm font-medium mb-2">Importo Massimo (€)</label>
             <input
+              id="filter-max-amount"
               type="number"
               step="0.01"
               value={filters.maxAmount}
@@ -187,8 +191,9 @@ export function AdvancedSearch() {
         {/* Category and Account */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Categoria</label>
+            <label htmlFor="search-category" className="block text-sm font-medium mb-2">Categoria</label>
             <select
+              id="search-category"
               value={filters.categoryId}
               onChange={(e) => updateFilter('categoryId', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg"
@@ -202,8 +207,9 @@ export function AdvancedSearch() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Conto</label>
+            <label htmlFor="search-account" className="block text-sm font-medium mb-2">Conto</label>
             <select
+              id="search-account"
               value={filters.accountId}
               onChange={(e) => updateFilter('accountId', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg"
@@ -221,8 +227,9 @@ export function AdvancedSearch() {
         {/* Type and Status */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Tipo</label>
+            <label htmlFor="search-type" className="block text-sm font-medium mb-2">Tipo</label>
             <select
+              id="search-type"
               value={filters.type}
               onChange={(e) => updateFilter('type', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg"
@@ -234,8 +241,9 @@ export function AdvancedSearch() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Stato</label>
+            <label htmlFor="search-status" className="block text-sm font-medium mb-2">Stato</label>
             <select
+              id="search-status"
               value={filters.status}
               onChange={(e) => updateFilter('status', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg"
@@ -251,8 +259,9 @@ export function AdvancedSearch() {
 
         {/* Text Search */}
         <div>
-          <label className="block text-sm font-medium mb-2">Cerca nel testo</label>
+          <label htmlFor="search-text" className="block text-sm font-medium mb-2">Cerca nel testo</label>
           <input
+            id="search-text"
             type="text"
             value={filters.searchText}
             onChange={(e) => updateFilter('searchText', e.target.value)}
@@ -264,8 +273,9 @@ export function AdvancedSearch() {
         {/* Sort Options */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Ordina per</label>
+            <label htmlFor="search-sortby" className="block text-sm font-medium mb-2">Ordina per</label>
             <select
+              id="search-sortby"
               value={filters.sortBy}
               onChange={(e) => updateFilter('sortBy', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg"
@@ -275,8 +285,9 @@ export function AdvancedSearch() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Ordine</label>
+            <label htmlFor="search-sortorder" className="block text-sm font-medium mb-2">Ordine</label>
             <select
+              id="search-sortorder"
               value={filters.sortOrder}
               onChange={(e) => updateFilter('sortOrder', e.target.value)}
               className="w-full px-3 py-2 border rounded-lg"

@@ -130,8 +130,9 @@ export function AdvancedCharts() {
       <div className="bg-white p-4 rounded-lg shadow">
         <div className="flex gap-4 items-end flex-wrap">
           <div>
-            <label className="block text-sm font-medium mb-2">Periodo Trend</label>
+            <label htmlFor="trend-period" className="block text-sm font-medium mb-2">Periodo Trend</label>
             <select
+              id="trend-period"
               value={selectedMonths}
               onChange={(e) => setSelectedMonths(parseInt(e.target.value))}
               className="px-3 py-2 border rounded-lg"
@@ -143,8 +144,9 @@ export function AdvancedCharts() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Da</label>
+            <label htmlFor="date-start" className="block text-sm font-medium mb-2">Da</label>
             <input
+              id="date-start"
               type="date"
               value={dateRange.startDate}
               onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
@@ -153,8 +155,9 @@ export function AdvancedCharts() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">A</label>
+            <label htmlFor="date-end" className="block text-sm font-medium mb-2">A</label>
             <input
+              id="date-end"
               type="date"
               value={dateRange.endDate}
               onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}

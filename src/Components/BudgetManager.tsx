@@ -161,8 +161,9 @@ export function BudgetManager() {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Categoria</label>
+            <label htmlFor="budget-category" className="block text-sm font-medium mb-2">Categoria</label>
             <select
+              id="budget-category"
               value={formData.categoryId}
               onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
               required
@@ -178,8 +179,9 @@ export function BudgetManager() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Importo (€)</label>
+            <label htmlFor="budget-amount" className="block text-sm font-medium mb-2">Importo (€)</label>
             <input
+              id="budget-amount"
               type="number"
               step="0.01"
               value={formData.amount}
@@ -190,8 +192,9 @@ export function BudgetManager() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Periodo</label>
+            <label htmlFor="budget-period" className="block text-sm font-medium mb-2">Periodo</label>
             <select
+              id="budget-period"
               value={formData.period}
               onChange={(e) => setFormData({ ...formData, period: e.target.value as any })}
               className="w-full px-3 py-2 border rounded-lg"
@@ -203,8 +206,9 @@ export function BudgetManager() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Data Inizio</label>
+            <label htmlFor="budget-start-date" className="block text-sm font-medium mb-2">Data Inizio</label>
             <input
+              id="budget-start-date"
               type="date"
               value={formData.startDate}
               onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
